@@ -4,7 +4,6 @@
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/andrunio/rufaker/badges/coverage.json)](https://github.com/andrunio/rufaker/actions/workflows/ci.yml)
 [![Packagist](https://img.shields.io/packagist/v/rufaker/rufaker)](https://packagist.org/packages/rufaker/rufaker)
 [![PHP](https://img.shields.io/packagist/dependency-v/rufaker/rufaker/php)](https://packagist.org/packages/rufaker/rufaker)
-[![License](https://img.shields.io/packagist/l/rufaker/rufaker)](LICENSE)
 
 Российские тестовые данные для PHP: реквизиты организаций и банков — ИНН, ОГРН и ОГРНИП, КПП,
 БИК, корреспондентский и расчётный счёт.
