@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RuFaker\Generator;
 
 use Random\Randomizer;
+use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
@@ -32,6 +33,9 @@ final readonly class OrganizationGenerator
     /** Sequence number of the first registration made on that reason. */
     private const string FIRST_SEQUENCE = '001';
 
+    /** Names of sole proprietors, the one part of a business that is a person. */
+    private PersonGenerator $people;
+
     /**
      * Builds a generator drawing from the given randomizer.
      *
@@ -39,6 +43,7 @@ final readonly class OrganizationGenerator
      */
     public function __construct(private Randomizer $randomizer)
     {
+        $this->people = new PersonGenerator($randomizer);
     }
 
     /**
@@ -46,9 +51,10 @@ final readonly class OrganizationGenerator
      *
      * @param LegalForm|null $form
      * @param Region|null $region
+     * @param Gender|null $gender
      * @return Organization
      */
-    public function generate(?LegalForm $form = null, ?Region $region = null): Organization
+    public function generate(?LegalForm $form = null, ?Region $region = null, ?Gender $gender = null): Organization
     {
         $form ??= $this->form();
         $region ??= Region::random($this->randomizer);
@@ -60,6 +66,7 @@ final readonly class OrganizationGenerator
             $this->buildInn($form, $region),
             $this->buildRegistryNumber($form, $region, $taxOffice),
             $form->hasKpp() ? $this->buildKpp($region, $taxOffice) : null,
+            $form->isIndividual() ? $this->people->generate($gender) : null,
         );
     }
 

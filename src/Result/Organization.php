@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace RuFaker\Result;
 
-use JsonSerializable;
-use Override;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
+use RuFaker\Internal\ArrayValue;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
@@ -16,8 +15,10 @@ use RuFaker\Requisite\Region;
 /**
  * Requisites of one business that agree with each other.
  */
-final readonly class Organization implements JsonSerializable
+final readonly class Organization implements Result
 {
+    use ArrayValue;
+
     /**
      * Assembles business requisites, rejecting a set that contradicts itself.
      *
@@ -26,6 +27,7 @@ final readonly class Organization implements JsonSerializable
      * @param Inn $inn
      * @param Ogrn $ogrn
      * @param Kpp|null $kpp
+     * @param Person|null $person
      * @throws InvalidRequisite
      */
     public function __construct(
@@ -34,6 +36,7 @@ final readonly class Organization implements JsonSerializable
         public Inn       $inn,
         public Ogrn      $ogrn,
         public ?Kpp      $kpp = null,
+        public ?Person   $person = null,
     )
     {
         $innDigits = $form->innDigits();
@@ -49,6 +52,10 @@ final readonly class Organization implements JsonSerializable
 
         if ($form->hasKpp() !== ($kpp instanceof Kpp)) {
             throw InvalidRequisite::because("Presence of a KPP contradicts the legal form $form->value.");
+        }
+
+        if ($form->isIndividual() !== ($person instanceof Person)) {
+            throw InvalidRequisite::because("Presence of a full name contradicts the legal form $form->value.");
         }
 
         if ($inn->region()?->value !== $region->value) {
@@ -67,7 +74,7 @@ final readonly class Organization implements JsonSerializable
     /**
      * Returns the requisites as plain strings, ready for a fixture or a payload.
      *
-     * @return array{form: string, region: string, inn: string, ogrn: string, kpp: string|null}
+     * @return array{form: string, region: string, inn: string, ogrn: string, kpp: string|null, person: string|null}
      */
     public function toArray(): array
     {
@@ -77,17 +84,7 @@ final readonly class Organization implements JsonSerializable
             'inn' => $this->inn->value,
             'ogrn' => $this->ogrn->value,
             'kpp' => $this->kpp?->value,
+            'person' => $this->person?->full(),
         ];
-    }
-
-    /**
-     * Returns the value for json_encode().
-     *
-     * @return array{form: string, region: string, inn: string, ogrn: string, kpp: string|null}
-     */
-    #[Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }
