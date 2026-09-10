@@ -1,0 +1,74 @@
+{
+    "name": "rufaker/rufaker",
+    "description": "Consistent Russian fake data for tests and fixtures.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "faker",
+        "fake-data",
+        "test-data",
+        "fixtures",
+        "russia",
+        "russian",
+        "inn",
+        "ogrn",
+        "kpp",
+        "bik",
+        "bank-account"
+    ],
+    "authors": [
+        {
+            "name": "Andrei Vasiukov",
+            "homepage": "https://github.com/andrunio"
+        }
+    ],
+    "homepage": "https://github.com/andrunio/rufaker",
+    "support": {
+        "issues": "https://github.com/andrunio/rufaker/issues",
+        "source": "https://github.com/andrunio/rufaker"
+    },
+    "require": {
+        "php": "^8.3"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^12.5"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "RuFaker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RuFaker\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:83": "docker compose run --rm php83 vendor/bin/phpunit",
+        "test:84": "docker compose run --rm php84 vendor/bin/phpunit",
+        "test:85": "docker compose run --rm php85 vendor/bin/phpunit",
+        "stan": "phpstan analyse",
+        "check": [
+            "@stan",
+            "@test"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Run the test suite on the host PHP.",
+        "test:83": "Run the test suite inside the PHP 8.3 container.",
+        "test:84": "Run the test suite inside the PHP 8.4 container.",
+        "test:85": "Run the test suite inside the PHP 8.5 container.",
+        "stan": "Run static analysis.",
+        "check": "Run static analysis and the test suite."
+    }
+}
