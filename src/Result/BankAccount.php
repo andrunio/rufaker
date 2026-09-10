@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace RuFaker\Result;
 
-use JsonSerializable;
-use Override;
 use RuFaker\Exception\InvalidRequisite;
+use RuFaker\Internal\ArrayValue;
 use RuFaker\Requisite\Account;
 use RuFaker\Requisite\Bik;
 
 /**
  * Payment details of one customer: a bank and its two accounts, all keyed to the same BIK.
  */
-final readonly class BankAccount implements JsonSerializable
+final readonly class BankAccount implements Result
 {
+    use ArrayValue;
+
     /**
      * Assembles payment details, rejecting an account not keyed to the given bank.
      *
@@ -58,16 +59,5 @@ final readonly class BankAccount implements JsonSerializable
             'correspondent_account' => $this->correspondent->value,
             'settlement_account' => $this->settlement->value,
         ];
-    }
-
-    /**
-     * Returns the value for json_encode().
-     *
-     * @return array{bik: string, correspondent_account: string, settlement_account: string}
-     */
-    #[Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }

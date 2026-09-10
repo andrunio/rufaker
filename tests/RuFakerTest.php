@@ -7,6 +7,7 @@ namespace RuFaker\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Requisite\Region;
 use RuFaker\RuFaker;
@@ -96,13 +97,53 @@ final class RuFakerTest extends TestCase
     }
 
     #[Test]
+    public function it_builds_a_full_name(): void
+    {
+        $person = RuFaker::seeded(1234)
+            ->person(Gender::Female);
+
+        $this->assertSame(
+            Gender::Female,
+            $person->gender,
+        );
+
+        $this->assertSame(
+            "$person->lastName $person->firstName $person->patronymic",
+            $person->full(),
+        );
+    }
+
+    #[Test]
+    public function it_gives_a_sole_proprietor_the_name_of_the_requested_gender(): void
+    {
+        $organization = RuFaker::seeded(1234)
+            ->organization(LegalForm::Ip, null, Gender::Male);
+
+        $this->assertSame(
+            Gender::Male,
+            $organization->person?->gender,
+        );
+    }
+
+    #[Test]
+    public function it_leaves_a_legal_entity_without_a_name(): void
+    {
+        $organization = RuFaker::seeded(1234)
+            ->organization(LegalForm::Ooo);
+
+        $this->assertNull(
+            $organization->person,
+        );
+    }
+
+    #[Test]
     public function it_serialises_a_whole_set_to_json(): void
     {
         $organization = RuFaker::seeded(1234)
             ->organization(LegalForm::Ooo);
 
         $this->assertSame(
-            ['form', 'region', 'inn', 'ogrn', 'kpp'],
+            ['form', 'region', 'inn', 'ogrn', 'kpp', 'person'],
             array_keys($organization->toArray()),
         );
 

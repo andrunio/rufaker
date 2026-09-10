@@ -13,7 +13,9 @@ use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
 use RuFaker\Requisite\Region;
+use RuFaker\Enum\Gender;
 use RuFaker\Result\Organization;
+use RuFaker\Result\Person;
 
 #[CoversClass(Organization::class)]
 final class OrganizationTest extends TestCase
@@ -100,6 +102,8 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            null,
+            $this->entrepreneur(),
         );
     }
 
@@ -144,6 +148,46 @@ final class OrganizationTest extends TestCase
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
             Kpp::from(self::SBERBANK_KPP),
+            $this->entrepreneur(),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_sole_proprietor_without_a_name(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Presence of a full name contradicts the legal form ip.');
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_legal_entity_carrying_a_name(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Presence of a full name contradicts the legal form pao.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            Kpp::from(self::SBERBANK_KPP),
+            $this->entrepreneur(),
+        );
+    }
+
+    #[Test]
+    public function it_names_the_person_behind_a_sole_proprietor(): void
+    {
+        $this->assertSame(
+            'Иванов Иван Иванович',
+            $this->soleProprietor()->person?->full(),
         );
     }
 
@@ -202,6 +246,7 @@ final class OrganizationTest extends TestCase
                 'inn' => self::SBERBANK_INN,
                 'ogrn' => self::SBERBANK_OGRN,
                 'kpp' => self::SBERBANK_KPP,
+                'person' => null,
             ],
             $this->sberbank()->toArray(),
         );
@@ -226,7 +271,8 @@ final class OrganizationTest extends TestCase
         );
 
         $this->assertSame(
-            '{"form":"pao","region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001"}',
+            '{"form":"pao","region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
+            . '"person":null}',
             json_encode($organization),
         );
     }
@@ -261,6 +307,19 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            null,
+            $this->entrepreneur(),
         );
+    }
+
+    /**
+     * Builds the full name a sole proprietor does business under.
+     *
+     * @return Person
+     * @throws InvalidRequisite
+     */
+    private function entrepreneur(): Person
+    {
+        return new Person(Gender::Male, 'Иванов', 'Иван', 'Иванович');
     }
 }

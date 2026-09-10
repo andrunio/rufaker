@@ -6,9 +6,11 @@ namespace RuFaker;
 
 use Random\Engine\Mt19937;
 use Random\Randomizer;
+use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Generator\BankAccountGenerator;
 use RuFaker\Generator\OrganizationGenerator;
+use RuFaker\Generator\PersonGenerator;
 use RuFaker\Requisite\Bik;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
@@ -16,15 +18,21 @@ use RuFaker\Requisite\Ogrn;
 use RuFaker\Requisite\Region;
 use RuFaker\Result\BankAccount;
 use RuFaker\Result\Organization;
+use RuFaker\Result\Person;
 
 /**
  * Entry point of the package.
  */
 final readonly class RuFaker
 {
+    /** Source of business requisites that agree with each other. */
     private OrganizationGenerator $organizations;
 
+    /** Source of a bank together with the accounts opened in it. */
     private BankAccountGenerator $bankAccounts;
+
+    /** Source of full names whose parts agree in gender. */
+    private PersonGenerator $people;
 
     /**
      * Builds a faker drawing from the given randomizer.
@@ -35,6 +43,7 @@ final readonly class RuFaker
     {
         $this->organizations = new OrganizationGenerator($randomizer);
         $this->bankAccounts = new BankAccountGenerator($randomizer);
+        $this->people = new PersonGenerator($randomizer);
     }
 
     /**
@@ -57,11 +66,23 @@ final readonly class RuFaker
      *
      * @param LegalForm|null $form
      * @param Region|null $region
+     * @param Gender|null $gender
      * @return Organization
      */
-    public function organization(?LegalForm $form = null, ?Region $region = null): Organization
+    public function organization(?LegalForm $form = null, ?Region $region = null, ?Gender $gender = null): Organization
     {
-        return $this->organizations->generate($form, $region);
+        return $this->organizations->generate($form, $region, $gender);
+    }
+
+    /**
+     * Builds a full name whose parts agree in gender.
+     *
+     * @param Gender|null $gender
+     * @return Person
+     */
+    public function person(?Gender $gender = null): Person
+    {
+        return $this->people->generate($gender);
     }
 
     /**

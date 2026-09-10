@@ -93,6 +93,27 @@ final class ArchitectureTest extends TestCase
     }
 
     #[Test]
+    public function every_result_implements_the_common_contract(): void
+    {
+        foreach ($this->sources() as $path => $contents) {
+            if (!preg_match('/^namespace RuFaker\\\\Result;$/m', $contents)) {
+                continue;
+            }
+
+            if (!preg_match('/^final (?:readonly )?class /m', $contents)) {
+                continue;
+            }
+
+            $this->assertMatchesRegularExpression(
+                '/^final (?:readonly )?class \w+ implements [^\n]*\bResult\b/m',
+                $contents,
+                "Class in $path must implement Result: the contract is what makes every assembled "
+                . 'set serialisable the same way.',
+            );
+        }
+    }
+
+    #[Test]
     public function every_exception_of_the_package_implements_the_common_contract(): void
     {
         foreach ($this->sources() as $path => $contents) {
