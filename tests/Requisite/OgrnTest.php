@@ -14,6 +14,9 @@ use RuFaker\Requisite\Ogrn;
 #[CoversClass(Ogrn::class)]
 final class OgrnTest extends TestCase
 {
+    /** Registry number of a sole proprietor, completed by the package: no value from real life is at hand yet. */
+    private const string SOLE_PROPRIETOR = '304500100000017';
+
     #[Test]
     #[DataProvider('realNumbers')]
     public function it_accepts_a_real_registry_number(string $value): void
@@ -27,19 +30,7 @@ final class OgrnTest extends TestCase
     #[DataProvider('realNumbers')]
     public function it_rejects_every_other_checksum_digit(string $value): void
     {
-        $position = strlen($value) - 1;
-
-        foreach (str_split('0123456789') as $digit) {
-            if ($digit === $value[$position]) {
-                continue;
-            }
-
-            $this->assertFalse(
-                Ogrn::isValid(
-                    substr_replace($value, $digit, $position, 1),
-                ),
-            );
-        }
+        $this->assertBrokenByEveryOtherChecksum($value);
     }
 
     #[Test]
@@ -58,6 +49,25 @@ final class OgrnTest extends TestCase
             '1027700132195',
             Ogrn::complete('102770013219')->value,
         );
+    }
+
+    #[Test]
+    public function it_completes_a_sole_proprietor_body(): void
+    {
+        $this->assertSame(
+            self::SOLE_PROPRIETOR,
+            Ogrn::complete('30450010000001')->value,
+        );
+
+        $this->assertTrue(
+            Ogrn::isValid(self::SOLE_PROPRIETOR),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_every_other_checksum_digit_of_a_sole_proprietor_number(): void
+    {
+        $this->assertBrokenByEveryOtherChecksum(self::SOLE_PROPRIETOR);
     }
 
     #[Test]
@@ -81,6 +91,33 @@ final class OgrnTest extends TestCase
         $this->assertFalse(
             $entity->isIndividual(),
         );
+
+        $this->assertTrue(
+            Ogrn::from(self::SOLE_PROPRIETOR)->isIndividual(),
+        );
+    }
+
+    /**
+     * Asserts that no digit but the one in place passes as the checksum of the number.
+     *
+     * @param string $value
+     * @return void
+     */
+    private function assertBrokenByEveryOtherChecksum(string $value): void
+    {
+        $position = strlen($value) - 1;
+
+        foreach (str_split('0123456789') as $digit) {
+            if ($digit === $value[$position]) {
+                continue;
+            }
+
+            $this->assertFalse(
+                Ogrn::isValid(
+                    substr_replace($value, $digit, $position, 1),
+                ),
+            );
+        }
     }
 
     /**
