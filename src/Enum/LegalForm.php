@@ -14,6 +14,12 @@ enum LegalForm: string
     case Pao = 'pao';
     case Ip = 'ip';
 
+    /** Commercial organization under first-order account 407 of Bank of Russia Regulation 809-P. */
+    private const string CommercialOrganization = '40702';
+
+    /** Sole proprietor under first-order account 408 of Bank of Russia Regulation 809-P. */
+    private const string SoleProprietor = '40802';
+
     /**
      * Number of digits in the INN of this form.
      *
@@ -61,7 +67,9 @@ enum LegalForm: string
      */
     public function balanceAccount(): string
     {
-        return $this->isIndividual() ? '40802' : '40702';
+        return $this->isIndividual()
+            ? self::SoleProprietor
+            : self::CommercialOrganization;
     }
 
     /**
