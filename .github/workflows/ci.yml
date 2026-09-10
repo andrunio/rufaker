@@ -37,6 +37,78 @@ jobs:
 
       - run: vendor/bin/phpunit
 
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      COVERAGE_FLOOR: '95'
+      BADGE_BRANCH: badges
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: pcov
+
+      - uses: ramsey/composer-install@v4
+
+      - run: vendor/bin/phpunit --coverage-clover coverage.xml
+
+      - name: Read the coverage out of the report
+        id: coverage
+        run: php .github/coverage.php coverage.xml >> "$GITHUB_OUTPUT"
+
+      # The badge is published before the floor is checked, so it tells the truth about a build
+      # that failed rather than keeping the last number that passed.
+      - name: Publish the badge
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERCENT: ${{ steps.coverage.outputs.percent }}
+          COLOR: ${{ steps.coverage.outputs.color }}
+        run: |
+          remote="https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY"
+
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # The branch holds nothing but the badge, and it does not exist before the first run.
+          if git clone --quiet --depth 1 --branch "$BADGE_BRANCH" "$remote" badge; then
+              cd badge
+          else
+              mkdir badge
+              cd badge
+              git init --quiet --initial-branch "$BADGE_BRANCH"
+              git remote add origin "$remote"
+          fi
+
+          printf '{"schemaVersion": 1, "label": "coverage", "message": "%s%%", "color": "%s"}\n' \
+              "$PERCENT" "$COLOR" > coverage.json
+
+          if git diff --quiet HEAD -- coverage.json 2>/dev/null; then
+              echo "Coverage is still $PERCENT%, the badge stays as it is."
+              exit 0
+          fi
+
+          git add coverage.json
+          git commit --quiet --message "chore: coverage $PERCENT%"
+          git push --quiet origin "$BADGE_BRANCH"
+
+      - name: Hold the coverage floor
+        env:
+          PERCENT: ${{ steps.coverage.outputs.percent }}
+        run: |
+          if php -r 'exit((float)$argv[1] < (float)$argv[2] ? 1 : 0);' "$PERCENT" "$COVERAGE_FLOOR"; then
+              echo "Line coverage $PERCENT% holds the floor of $COVERAGE_FLOOR%."
+              exit 0
+          fi
+
+          echo "::error::Line coverage $PERCENT% is below the floor of $COVERAGE_FLOOR%."
+          exit 1
+
   static:
     name: Static analysis
     runs-on: ubuntu-latest

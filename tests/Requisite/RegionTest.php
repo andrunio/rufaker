@@ -35,6 +35,20 @@ final class RegionTest extends TestCase
     }
 
     #[Test]
+    public function it_wraps_a_code_of_the_range(): void
+    {
+        $this->assertSame(
+            '77',
+            Region::from('77')->value,
+        );
+
+        $this->assertSame(
+            '78',
+            Region::tryFrom('78')?->value,
+        );
+    }
+
+    #[Test]
     public function it_throws_on_an_invalid_code(): void
     {
         $this->expectException(InvalidRequisite::class);
