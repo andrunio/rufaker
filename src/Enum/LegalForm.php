@@ -27,7 +27,9 @@ enum LegalForm: string
      */
     public function innDigits(): int
     {
-        return $this->isIndividual() ? 12 : 10;
+        return $this->isIndividual()
+            ? 12
+            : 10;
     }
 
     /**
@@ -37,7 +39,9 @@ enum LegalForm: string
      */
     public function innChecksumDigits(): int
     {
-        return $this->isIndividual() ? 2 : 1;
+        return $this->isIndividual()
+            ? 2
+            : 1;
     }
 
     /**
@@ -47,7 +51,9 @@ enum LegalForm: string
      */
     public function registryNumberDigits(): int
     {
-        return $this->isIndividual() ? 15 : 13;
+        return $this->isIndividual()
+            ? 15
+            : 13;
     }
 
     /**
@@ -57,7 +63,9 @@ enum LegalForm: string
      */
     public function registryNumberPrefix(): string
     {
-        return $this->isIndividual() ? '3' : '1';
+        return $this->isIndividual()
+            ? '3'
+            : '1';
     }
 
     /**
