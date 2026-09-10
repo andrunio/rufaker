@@ -92,6 +92,27 @@ final class ArchitectureTest extends TestCase
         }
     }
 
+    #[Test]
+    public function every_exception_of_the_package_implements_the_common_contract(): void
+    {
+        foreach ($this->sources() as $path => $contents) {
+            if (!preg_match('/^namespace RuFaker\\\\Exception;$/m', $contents)) {
+                continue;
+            }
+
+            if (!preg_match('/^final (?:readonly )?class /m', $contents)) {
+                continue;
+            }
+
+            $this->assertMatchesRegularExpression(
+                '/^final (?:readonly )?class \w+ extends \w+ implements [^\n]*\bException\b/m',
+                $contents,
+                "Class in $path must extend an SPL exception and implement Exception: the interface "
+                . 'is what lets a caller catch everything the package throws by one type.',
+            );
+        }
+    }
+
     /**
      * Reads every PHP source of the package, keyed by file name.
      *
