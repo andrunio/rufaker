@@ -7,6 +7,7 @@ namespace RuFaker\Tests\Result;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Requisite\Account;
 use RuFaker\Requisite\Bik;
@@ -33,6 +34,9 @@ final class BankAccountTest extends TestCase
     /** Settlement account of a customer of that branch, completed by the package itself. */
     private const string NORTHWEST_SETTLEMENT = '40702810700000000001';
 
+    /** Proper name of the bank the tests build, one of the words the package draws from. */
+    private const string TITLE = 'Ромашка';
+
     #[Test]
     public function it_assembles_details_of_one_bank(): void
     {
@@ -53,6 +57,52 @@ final class BankAccountTest extends TestCase
     }
 
     #[Test]
+    public function it_names_the_bank_in_both_forms(): void
+    {
+        $details = $this->details();
+
+        $this->assertSame(
+            'ПАО "Ромашка Банк"',
+            $details->shortName,
+        );
+
+        $this->assertSame(
+            'Публичное акционерное общество "Ромашка Банк"',
+            $details->fullName,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_sole_proprietor_as_a_bank(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A bank cannot be a sole proprietor.');
+
+        new BankAccount(
+            Bik::from(self::MOSCOW_BIK),
+            $this->account(self::MOSCOW_CORRESPONDENT, self::MOSCOW_BIK),
+            $this->account(self::MOSCOW_SETTLEMENT, self::MOSCOW_BIK),
+            LegalForm::Ip,
+            self::TITLE,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_an_empty_title(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A bank must have a title.');
+
+        new BankAccount(
+            Bik::from(self::MOSCOW_BIK),
+            $this->account(self::MOSCOW_CORRESPONDENT, self::MOSCOW_BIK),
+            $this->account(self::MOSCOW_SETTLEMENT, self::MOSCOW_BIK),
+            LegalForm::Pao,
+            '   ',
+        );
+    }
+
+    #[Test]
     public function it_rejects_a_correspondent_account_of_another_bank(): void
     {
         $this->expectException(InvalidRequisite::class);
@@ -62,6 +112,8 @@ final class BankAccountTest extends TestCase
             Bik::from(self::MOSCOW_BIK),
             $this->account(self::NORTHWEST_CORRESPONDENT, self::NORTHWEST_BIK),
             $this->account(self::MOSCOW_SETTLEMENT, self::MOSCOW_BIK),
+            LegalForm::Pao,
+            self::TITLE,
         );
     }
 
@@ -75,6 +127,8 @@ final class BankAccountTest extends TestCase
             Bik::from(self::MOSCOW_BIK),
             $this->account(self::MOSCOW_CORRESPONDENT, self::MOSCOW_BIK),
             $this->account(self::NORTHWEST_SETTLEMENT, self::NORTHWEST_BIK),
+            LegalForm::Pao,
+            self::TITLE,
         );
     }
 
@@ -88,6 +142,8 @@ final class BankAccountTest extends TestCase
             Bik::from(self::MOSCOW_BIK),
             $this->account(self::MOSCOW_SETTLEMENT, self::MOSCOW_BIK),
             $this->account(self::MOSCOW_SETTLEMENT, self::MOSCOW_BIK),
+            LegalForm::Pao,
+            self::TITLE,
         );
     }
 
@@ -101,6 +157,8 @@ final class BankAccountTest extends TestCase
             Bik::from(self::MOSCOW_BIK),
             $this->account(self::MOSCOW_CORRESPONDENT, self::MOSCOW_BIK),
             $this->account(self::MOSCOW_CORRESPONDENT, self::MOSCOW_BIK),
+            LegalForm::Pao,
+            self::TITLE,
         );
     }
 
@@ -109,6 +167,8 @@ final class BankAccountTest extends TestCase
     {
         $this->assertSame(
             [
+                'bank_short_name' => 'ПАО "Ромашка Банк"',
+                'bank_full_name' => 'Публичное акционерное общество "Ромашка Банк"',
                 'bik' => self::MOSCOW_BIK,
                 'correspondent_account' => self::MOSCOW_CORRESPONDENT,
                 'settlement_account' => self::MOSCOW_SETTLEMENT,
@@ -128,8 +188,11 @@ final class BankAccountTest extends TestCase
         );
 
         $this->assertSame(
-            '{"bik":"044525225","correspondent_account":"30101810400000000225","settlement_account":"40702810200000000001"}',
-            json_encode($details),
+            '{"bank_short_name":"ПАО \"Ромашка Банк\"",'
+            . '"bank_full_name":"Публичное акционерное общество \"Ромашка Банк\"",'
+            . '"bik":"044525225","correspondent_account":"30101810400000000225",'
+            . '"settlement_account":"40702810200000000001"}',
+            json_encode($details, JSON_UNESCAPED_UNICODE),
         );
     }
 
@@ -166,6 +229,8 @@ final class BankAccountTest extends TestCase
             Bik::from(self::MOSCOW_BIK),
             $this->account(self::MOSCOW_CORRESPONDENT, self::MOSCOW_BIK),
             $this->account(self::MOSCOW_SETTLEMENT, self::MOSCOW_BIK),
+            LegalForm::Pao,
+            self::TITLE,
         );
     }
 

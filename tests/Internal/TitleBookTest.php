@@ -7,6 +7,8 @@ namespace RuFaker\Tests\Internal;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 use RuFaker\Internal\TitleBook;
 
 #[CoversClass(TitleBook::class)]
@@ -18,6 +20,21 @@ final class TitleBookTest extends TestCase
         $this->assertNotEmpty(
             TitleBook::titles(),
         );
+    }
+
+    #[Test]
+    public function it_draws_only_from_its_own_list(): void
+    {
+        $randomizer = new Randomizer(
+            new Mt19937(1234),
+        );
+
+        foreach (range(1, 200) as $ignored) {
+            $this->assertContains(
+                TitleBook::random($randomizer),
+                TitleBook::titles(),
+            );
+        }
     }
 
     #[Test]

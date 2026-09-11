@@ -11,6 +11,7 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Generator\BankAccountGenerator;
+use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Account;
 use RuFaker\Requisite\Bik;
 use RuFaker\Result\BankAccount;
@@ -88,6 +89,48 @@ final class BankAccountGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function it_names_every_bank_it_builds(): void
+    {
+        $generator = $this->generator();
+        $names = $this->names();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $details = $generator->generate();
+
+            // A name outside the map means a forbidden form, a word off the book or a lost "Банк".
+            $this->assertArrayHasKey(
+                $details->shortName,
+                $names,
+            );
+
+            $this->assertSame(
+                $names[$details->shortName],
+                $details->fullName,
+            );
+        }
+    }
+
+    #[Test]
+    public function it_gives_the_same_bik_the_same_bank(): void
+    {
+        $generator = $this->generator();
+        $bik = Bik::from('044525225');
+
+        $first = $generator->generate($bik);
+        $second = $generator->generate($bik);
+
+        $this->assertSame(
+            $first->shortName,
+            $second->shortName,
+        );
+
+        $this->assertSame(
+            $first->fullName,
+            $second->fullName,
+        );
+    }
+
+    #[Test]
     public function it_generates_a_well_formed_bik(): void
     {
         $generator = $this->generator();
@@ -97,6 +140,30 @@ final class BankAccountGeneratorTest extends TestCase
                 Bik::isValid($generator->bik()->value),
             );
         }
+    }
+
+    /**
+     * Builds every pair of names a bank can carry: the short one and the full one beside it.
+     *
+     * @return array<string, string>
+     */
+    private function names(): array
+    {
+        $names = [];
+
+        foreach (LegalForm::cases() as $form) {
+            if ($form->isIndividual()) {
+                continue;
+            }
+
+            foreach (TitleBook::titles() as $title) {
+                $quoted = "\"$title Банк\"";
+
+                $names[$form->shortTitle() . " $quoted"] = $form->fullTitle() . " $quoted";
+            }
+        }
+
+        return $names;
     }
 
     /**

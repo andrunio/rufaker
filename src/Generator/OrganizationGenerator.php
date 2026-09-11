@@ -74,7 +74,7 @@ final readonly class OrganizationGenerator
             $this->buildRegistryNumber($form, $region, $taxOffice),
             $form->hasKpp() ? $this->buildKpp($region, $taxOffice) : null,
             $form->isIndividual() ? $this->people->generate($gender) : null,
-            $form->isIndividual() ? null : $this->title(),
+            $form->isIndividual() ? null : TitleBook::random($this->randomizer),
             $initials,
         );
     }
@@ -171,18 +171,6 @@ final readonly class OrganizationGenerator
     private function buildKpp(Region $region, string $taxOffice): Kpp
     {
         return Kpp::from($region->value . $taxOffice . self::HEAD_OFFICE_REASON . self::FIRST_SEQUENCE);
-    }
-
-    /**
-     * Picks a proper name at random.
-     *
-     * @return string
-     */
-    private function title(): string
-    {
-        $titles = TitleBook::titles();
-
-        return $titles[$this->randomizer->getInt(0, count($titles) - 1)];
     }
 
     /**
