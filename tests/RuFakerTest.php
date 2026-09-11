@@ -114,6 +114,18 @@ final class RuFakerTest extends TestCase
     }
 
     #[Test]
+    public function it_passes_the_initials_flag_down_to_the_generator(): void
+    {
+        $organization = RuFaker::seeded(1234)
+            ->organization(LegalForm::Ip, initials: true);
+
+        $this->assertMatchesRegularExpression(
+            '/^ИП [А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.$/u',
+            $organization->shortName,
+        );
+    }
+
+    #[Test]
     public function it_gives_a_sole_proprietor_the_name_of_the_requested_gender(): void
     {
         $organization = RuFaker::seeded(1234)
@@ -143,7 +155,16 @@ final class RuFakerTest extends TestCase
             ->organization(LegalForm::Ooo);
 
         $this->assertSame(
-            ['form', 'region', 'inn', 'ogrn', 'kpp', 'person'],
+            [
+                'form',
+                'short_name',
+                'full_name',
+                'region',
+                'inn',
+                'ogrn',
+                'kpp',
+                'person',
+            ],
             array_keys($organization->toArray()),
         );
 

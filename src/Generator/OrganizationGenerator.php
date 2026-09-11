@@ -7,6 +7,7 @@ namespace RuFaker\Generator;
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
+use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
@@ -52,9 +53,15 @@ final readonly class OrganizationGenerator
      * @param LegalForm|null $form
      * @param Region|null $region
      * @param Gender|null $gender
+     * @param bool $initials
      * @return Organization
      */
-    public function generate(?LegalForm $form = null, ?Region $region = null, ?Gender $gender = null): Organization
+    public function generate(
+        ?LegalForm $form = null,
+        ?Region    $region = null,
+        ?Gender    $gender = null,
+        bool       $initials = false,
+    ): Organization
     {
         $form ??= $this->form();
         $region ??= Region::random($this->randomizer);
@@ -67,6 +74,8 @@ final readonly class OrganizationGenerator
             $this->buildRegistryNumber($form, $region, $taxOffice),
             $form->hasKpp() ? $this->buildKpp($region, $taxOffice) : null,
             $form->isIndividual() ? $this->people->generate($gender) : null,
+            $form->isIndividual() ? null : $this->title(),
+            $initials,
         );
     }
 
@@ -162,6 +171,18 @@ final readonly class OrganizationGenerator
     private function buildKpp(Region $region, string $taxOffice): Kpp
     {
         return Kpp::from($region->value . $taxOffice . self::HEAD_OFFICE_REASON . self::FIRST_SEQUENCE);
+    }
+
+    /**
+     * Picks a proper name at random.
+     *
+     * @return string
+     */
+    private function title(): string
+    {
+        $titles = TitleBook::titles();
+
+        return $titles[$this->randomizer->getInt(0, count($titles) - 1)];
     }
 
     /**

@@ -29,6 +29,9 @@ final class OrganizationTest extends TestCase
     /** Region code of Saint Petersburg, used wherever a requisite must come from elsewhere. */
     private const string PETERSBURG = '78';
 
+    /** Proper name of Sberbank, the one its full name carries. */
+    private const string SBERBANK_TITLE = 'Сбербанк России';
+
     /** INN of Sberbank, a public joint-stock company. */
     private const string SBERBANK_INN = '7707083893';
 
@@ -183,6 +186,112 @@ final class OrganizationTest extends TestCase
     }
 
     #[Test]
+    public function it_names_a_legal_entity_in_both_forms(): void
+    {
+        $organization = $this->sberbank();
+
+        $this->assertSame(
+            'ПАО "Сбербанк России"',
+            $organization->shortName,
+        );
+
+        $this->assertSame(
+            'Публичное акционерное общество "Сбербанк России"',
+            $organization->fullName,
+        );
+    }
+
+    #[Test]
+    public function it_names_a_sole_proprietor_by_the_full_name_of_the_person(): void
+    {
+        $organization = $this->soleProprietor();
+
+        $this->assertSame(
+            'ИП Иванов Иван Иванович',
+            $organization->shortName,
+        );
+
+        $this->assertSame(
+            'Индивидуальный предприниматель Иванов Иван Иванович',
+            $organization->fullName,
+        );
+    }
+
+    #[Test]
+    public function it_cuts_the_name_of_a_sole_proprietor_to_initials_when_asked(): void
+    {
+        $organization = new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            null,
+            $this->entrepreneur(),
+            null,
+            true,
+        );
+
+        $this->assertSame(
+            'ИП Иванов И.И.',
+            $organization->shortName,
+        );
+
+        $this->assertSame(
+            'Индивидуальный предприниматель Иванов Иван Иванович',
+            $organization->fullName,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_legal_entity_without_a_title(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Presence of a title contradicts the legal form pao.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            Kpp::from(self::SBERBANK_KPP),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_sole_proprietor_carrying_a_title(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Presence of a title contradicts the legal form ip.');
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            null,
+            $this->entrepreneur(),
+            self::SBERBANK_TITLE,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_an_empty_title(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A business must have a title.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            Kpp::from(self::SBERBANK_KPP),
+            null,
+            '   ',
+        );
+    }
+
+    #[Test]
     public function it_names_the_person_behind_a_sole_proprietor(): void
     {
         $this->assertSame(
@@ -203,6 +312,8 @@ final class OrganizationTest extends TestCase
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::PETERSBURG_OGRN),
             Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
         );
     }
 
@@ -218,6 +329,8 @@ final class OrganizationTest extends TestCase
             Inn::from(self::PETERSBURG_INN),
             Ogrn::from(self::SBERBANK_OGRN),
             Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
         );
     }
 
@@ -233,6 +346,8 @@ final class OrganizationTest extends TestCase
             Inn::from(self::PETERSBURG_INN),
             Ogrn::from(self::PETERSBURG_OGRN),
             Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
         );
     }
 
@@ -242,6 +357,8 @@ final class OrganizationTest extends TestCase
         $this->assertSame(
             [
                 'form' => 'ПАО',
+                'short_name' => 'ПАО "Сбербанк России"',
+                'full_name' => 'Публичное акционерное общество "Сбербанк России"',
                 'region' => self::MOSCOW,
                 'inn' => self::SBERBANK_INN,
                 'ogrn' => self::SBERBANK_OGRN,
@@ -271,8 +388,9 @@ final class OrganizationTest extends TestCase
         );
 
         $this->assertSame(
-            '{"form":"ПАО","region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
-            . '"person":null}',
+            '{"form":"ПАО","short_name":"ПАО \"Сбербанк России\"",'
+            . '"full_name":"Публичное акционерное общество \"Сбербанк России\"",'
+            . '"region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001","person":null}',
             json_encode($organization, JSON_UNESCAPED_UNICODE),
         );
     }
@@ -347,6 +465,8 @@ final class OrganizationTest extends TestCase
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
             Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
         );
     }
 
