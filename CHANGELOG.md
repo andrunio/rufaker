@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-11
+
 ### Добавлено
 
 - ФИО с согласованием по роду: `RuFaker::person()` отдаёт `Result\Person` — фамилию, имя,
@@ -54,5 +56,6 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/andrunio/rufaker/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/andrunio/rufaker/releases/tag/v0.1.0
