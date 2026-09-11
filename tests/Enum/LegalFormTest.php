@@ -101,6 +101,53 @@ final class LegalFormTest extends TestCase
         }
     }
 
+    #[Test]
+    public function it_names_itself_in_russian(): void
+    {
+        $this->assertSame(
+            [
+                'ООО',
+                'АО',
+                'ПАО',
+                'ИП',
+            ],
+            array_map(
+                static fn(LegalForm $form): string => $form->shortTitle(),
+                LegalForm::cases(),
+            ),
+        );
+
+        $this->assertSame(
+            [
+                'Общество с ограниченной ответственностью',
+                'Акционерное общество',
+                'Публичное акционерное общество',
+                'Индивидуальный предприниматель',
+            ],
+            array_map(
+                static fn(LegalForm $form): string => $form->fullTitle(),
+                LegalForm::cases(),
+            ),
+        );
+    }
+
+    #[Test]
+    public function it_carries_values_a_payload_can_hold(): void
+    {
+        $this->assertSame(
+            [
+                'ooo',
+                'ao',
+                'pao',
+                'ip',
+            ],
+            array_map(
+                static fn(LegalForm $form): string => $form->value,
+                LegalForm::cases(),
+            ),
+        );
+    }
+
     /**
      * Every form the enum treats as a legal entity rather than a person.
      *

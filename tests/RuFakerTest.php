@@ -56,7 +56,7 @@ final class RuFakerTest extends TestCase
             ->organization(LegalForm::Ip, Region::from('66'));
 
         $this->assertSame(
-            'ip',
+            'ИП',
             $organization->form,
         );
 

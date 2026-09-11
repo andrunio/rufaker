@@ -17,7 +17,7 @@ final readonly class Person implements Result, Stringable
 {
     use ArrayValue;
 
-    /** Gender every part of the name agrees with. */
+    /** Label of the gender every part of the name agrees with. */
     public string $gender;
 
     /** Name in the official order: last name, first name, patronymic. */
@@ -55,7 +55,7 @@ final readonly class Person implements Result, Stringable
         }
 
         $this->genderType = $gender;
-        $this->gender = $gender->value;
+        $this->gender = $gender->title();
         $this->fullName = "$lastName $firstName $patronymic";
     }
 

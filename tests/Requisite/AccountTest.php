@@ -82,7 +82,7 @@ final class AccountTest extends TestCase
     }
 
     #[Test]
-    public function it_tells_a_customer_account_from_a_correspondent_one(): void
+    public function it_tells_a_settlement_account_from_a_correspondent_one(): void
     {
         $bik = Bik::from(self::MOSCOW_BIK);
         $account = Account::fromDraft('40702810000000000001', $bik);
@@ -96,7 +96,17 @@ final class AccountTest extends TestCase
         );
 
         $this->assertTrue(
-            Account::from(self::MOSCOW_CORRESPONDENT, $bik)->isCorrespondent(),
+            $account->isSettlement(),
+        );
+
+        $correspondent = Account::from(self::MOSCOW_CORRESPONDENT, $bik);
+
+        $this->assertTrue(
+            $correspondent->isCorrespondent(),
+        );
+
+        $this->assertFalse(
+            $correspondent->isSettlement(),
         );
     }
 

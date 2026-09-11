@@ -19,7 +19,7 @@ final readonly class Organization implements Result
 {
     use ArrayValue;
 
-    /** Legal form the requisites are built for. */
+    /** Short label of the legal form the requisites are built for. */
     public string $form;
 
     /** Code of the federal subject every requisite belongs to. */
@@ -110,7 +110,7 @@ final readonly class Organization implements Result
         $this->kppType = $kpp;
         $this->personType = $person;
 
-        $this->form = $form->value;
+        $this->form = $form->shortTitle();
         $this->region = $region->value;
         $this->inn = $inn->value;
         $this->ogrn = $ogrn->value;

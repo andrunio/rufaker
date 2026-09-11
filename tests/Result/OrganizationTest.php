@@ -241,7 +241,7 @@ final class OrganizationTest extends TestCase
     {
         $this->assertSame(
             [
-                'form' => 'pao',
+                'form' => 'ПАО',
                 'region' => self::MOSCOW,
                 'inn' => self::SBERBANK_INN,
                 'ogrn' => self::SBERBANK_OGRN,
@@ -271,9 +271,9 @@ final class OrganizationTest extends TestCase
         );
 
         $this->assertSame(
-            '{"form":"pao","region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
+            '{"form":"ПАО","region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
             . '"person":null}',
-            json_encode($organization),
+            json_encode($organization, JSON_UNESCAPED_UNICODE),
         );
     }
 
@@ -283,7 +283,12 @@ final class OrganizationTest extends TestCase
         $organization = $this->sberbank();
 
         $this->assertSame(
+            'ПАО',
             $organization->form,
+        );
+
+        $this->assertSame(
+            'pao',
             $organization->form()->value,
         );
 

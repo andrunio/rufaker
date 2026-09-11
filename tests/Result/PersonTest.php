@@ -64,7 +64,7 @@ final class PersonTest extends TestCase
     {
         $this->assertSame(
             [
-                'gender' => 'female',
+                'gender' => 'женский',
                 'last_name' => 'Иванова',
                 'first_name' => 'Мария',
                 'patronymic' => 'Ильинична',
@@ -84,7 +84,7 @@ final class PersonTest extends TestCase
         );
 
         $this->assertSame(
-            '{"gender":"female","last_name":"Иванова","first_name":"Мария","patronymic":"Ильинична"}',
+            '{"gender":"женский","last_name":"Иванова","first_name":"Мария","patronymic":"Ильинична"}',
             json_encode($person, JSON_UNESCAPED_UNICODE),
         );
     }
@@ -110,7 +110,12 @@ final class PersonTest extends TestCase
         $person = $this->ivanov();
 
         $this->assertSame(
+            'мужской',
             $person->gender,
+        );
+
+        $this->assertSame(
+            'male',
             $person->gender()->value,
         );
     }

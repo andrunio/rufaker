@@ -96,6 +96,16 @@ final readonly class Account implements Requisite
     }
 
     /**
+     * Tells whether the account is a settlement one rather than a correspondent one.
+     *
+     * @return bool
+     */
+    public function isSettlement(): bool
+    {
+        return !$this->isCorrespondent();
+    }
+
+    /**
      * Computes the control key of the number against the given bank.
      *
      * @param string $number

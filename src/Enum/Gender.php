@@ -26,6 +26,16 @@ enum Gender: string
     }
 
     /**
+     * Tells whether the name of a person of this gender takes masculine forms.
+     *
+     * @return bool
+     */
+    public function isMale(): bool
+    {
+        return $this === self::Male;
+    }
+
+    /**
      * Tells whether the name of a person of this gender takes feminine forms.
      *
      * @return bool
