@@ -64,12 +64,12 @@ final class PersonGeneratorTest extends TestCase
         }
 
         $this->assertArrayHasKey(
-            'male',
+            'мужской',
             $drawn,
         );
 
         $this->assertArrayHasKey(
-            'female',
+            'женский',
             $drawn,
         );
     }

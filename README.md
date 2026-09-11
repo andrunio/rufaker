@@ -35,7 +35,7 @@ $ru = new RuFaker();
 
 $company = $ru->organization();
 
-$company->form;    // 'ooo'
+$company->form;    // 'ООО'
 $company->inn;     // '1492876987'
 $company->ogrn;    // '1101459307355'
 $company->kpp;     // '145901001'
@@ -52,11 +52,13 @@ $person = $ru->person();
 $person->lastName;    // 'Поляков'
 $person->firstName;   // 'Валентин'
 $person->patronymic;  // 'Арсеньевич'
-$person->gender;      // 'male'
+$person->gender;      // 'мужской'
 $person->fullName;    // 'Поляков Валентин Арсеньевич'
 ```
 
-Все поля — строки, готовые к подстановке в фикстуру, фабрику или запрос.
+Все поля — строки, готовые к подстановке в фикстуру, фабрику или запрос. В них стоит то, что
+написано в документе: `ООО`, `мужской`. Машинное значение перечисления живёт за скобками:
+`$company->form()->value` даёт `'ooo'`, `$person->gender()->value` — `'male'`.
 
 ## Как устроена выдача
 
@@ -75,21 +77,30 @@ $company->inn();  // RuFaker\Requisite\Inn — тип, знающий про с�
 $company->inn()->region();               // Requisite\Region — регион, к которому приписан ИНН
 $company->form()->hasKpp();              // true — бывает ли КПП у этой формы
 $company->form()->balanceAccount();      // '40702' — какой счёт открывает банк
-$bank->settlement()->isCorrespondent();  // false — счёт клиентский, не банковский
-$person->gender()->title();              // 'мужской'
+$bank->settlement()->isCorrespondent();  // false — расчётный счёт, не корреспондентский
+$person->gender()->value;                // 'male'
 ```
 
 Когда строки нужны сразу все, набор отдаёт их одним массивом — `toArray()`, а `json_encode()`
-возвращает то же самое. Ключи в `snake_case`, потому что массив уезжает наружу:
+возвращает то же самое. Ключи в `snake_case`:
 
 ```php
 $company->toArray();
-// ['form' => 'ooo', 'region' => '14', 'inn' => '1492876987',
-//  'ogrn' => '1101459307355', 'kpp' => '145901001', 'person' => null]
+// [
+//     'form' => 'ООО',
+//     'region' => '14',
+//     'inn' => '1492876987',
+//     'ogrn' => '1101459307355',
+//     'kpp' => '145901001',
+//     'person' => null,
+// ]
 
 $bank->toArray();
-// ['bik' => '040834121', 'correspondent_account' => '30101810700000000121',
-//  'settlement_account' => '40702810500006981360']
+// [
+//     'bik' => '040834121',
+//     'correspondent_account' => '30101810700000000121',
+//     'settlement_account' => '40702810500006981360',
+// ]
 ```
 
 ## Что генерирует пакет
@@ -108,7 +119,8 @@ $ru->organization(LegalForm::Ip, null, Gender::Female);  // пол предпр�
 ```
 
 Формы — `Ooo`, `Ao`, `Pao`, `Ip`. Форма определяет всё остальное: длину ИНН и ОГРН, наличие КПП,
-балансовый счёт.
+балансовый счёт. В поле `form` стоит краткий ярлык — `ООО`, `АО`, `ПАО`, `ИП`, — а полное название
+даёт `form()->fullTitle()`: `Общество с ограниченной ответственностью`.
 
 | Поле | Юридическое лицо | Индивидуальный предприниматель |
 |---|---|---|
@@ -131,21 +143,22 @@ $entrepreneur->person()->lastName;   // 'Успенский'
 ### ФИО
 
 ```php
-$ru->person();                  // пол случайный
-$ru->person(Gender::Female);    // пол задан
+$ru->person();                // пол случайный
+$ru->person(Gender::Female);  // пол задан
+
+$person->gender;              // 'женский'
+$person->gender()->value;     // 'female'
 ```
 
 Согласованы все три части сразу. Отчества, образованные не по общему правилу, и несклоняемые
 фамилии в книге учтены:
 
 ```php
-$ru->person(Gender::Female)->fullName;  // 'Романова Василиса Львовна'
-// 'Ильинична', 'Кузьминична' — не 'Ильиновна'; 'Шевченко' одинаково в обоих родах
+$ru->person(Gender::Female)->fullName;  // 'Шевченко Валерия Ильинична' — не 'Ильиновна'
 ```
 
 Книга собственная: 159 имён, 168 отчеств и 134 фамилии — больше восьмисот тысяч сочетаний
-на каждый пол.
-Сторонние справочники не подключаются.
+на каждый пол. Сторонние справочники не подключаются.
 
 ### Банковские реквизиты
 
@@ -162,7 +175,7 @@ $ru->bankAccount(null, LegalForm::Ip);     // балансовый счёт по
 |---|---|
 | `bik` | 9 знаков: территория, подразделение Банка России, номер участника |
 | `correspondent` | счёт банка в Банке России, начинается на `301` |
-| `settlement` | счёт клиента: `40702` для организации, `40802` для ИП |
+| `settlement` | расчётный счёт клиента: `40702` для организации, `40802` для ИП |
 
 Балансовые счета взяты из Плана счетов Положения Банка России от 24.11.2022 № 809-П: `40702`
 «Коммерческие организации», `40802` «Индивидуальные предприниматели».
@@ -230,9 +243,18 @@ return [...$company->toArray(), 'title' => 'Тестовая организац�
 ### Фикстура в JSON
 
 ```php
-file_put_contents('fixture.json', json_encode($ru->organization(LegalForm::Ip)));
-// {"form":"ip","region":"77","inn":"774726767382","ogrn":"321774281546078",
-//  "kpp":null,"person":"Куликова Лариса Григорьевна"}
+file_put_contents(
+    'fixture.json',
+    json_encode($ru->organization(LegalForm::Ip), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+);
+// {
+//     "form": "ИП",
+//     "region": "77",
+//     "inn": "774726767382",
+//     "ogrn": "321774281546078",
+//     "kpp": null,
+//     "person": "Куликова Лариса Григорьевна"
+// }
 ```
 
 ### Один и тот же набор в каждом прогоне
@@ -242,8 +264,14 @@ file_put_contents('fixture.json', json_encode($ru->organization(LegalForm::Ip)))
 
 ```php
 RuFaker::seeded(1234)->organization()->toArray();
-// ['form' => 'ip', 'region' => '55', 'inn' => '555104382976',
-//  'ogrn' => '302556771471859', 'kpp' => null, 'person' => 'Абрамова Анна Саввична']
+// [
+//     'form' => 'ИП',
+//     'region' => '55',
+//     'inn' => '555104382976',
+//     'ogrn' => '302556771471859',
+//     'kpp' => null,
+//     'person' => 'Абрамова Анна Саввична',
+// ]
 ```
 
 Сравнивать нужно массивы, а не наборы: два объекта с одинаковым содержимым совпадут по `==`,
@@ -334,12 +362,13 @@ $second->settlement;    // '40702810800008330269'
 | `Ogrn` | `region()`, `isIndividual()` | да |
 | `Kpp` | `region()`, `reason()` | нет, только формат |
 | `Bik` | `territory()`, `division()`, `participant()` | нет, только формат |
-| `Account` | `isCorrespondent()` | да, от БИК |
+| `Account` | `isCorrespondent()`, `isSettlement()` | да, от БИК |
 | `Region` | — | нет, только диапазон |
 
 **Перечисления.** `Enum\LegalForm` — `Ooo`, `Ao`, `Pao`, `Ip`; умеет `innDigits()`,
 `innChecksumDigits()`, `registryNumberDigits()`, `registryNumberPrefix()`, `balanceAccount()`,
-`hasKpp()`, `isIndividual()`. `Enum\Gender` — `Male`, `Female`; умеет `title()` и `isFemale()`.
+`hasKpp()`, `isIndividual()`, `shortTitle()` и `fullTitle()`. `Enum\Gender` — `Male`, `Female`;
+умеет `title()`, `isMale()` и `isFemale()`.
 У обоих штатные `cases()`, `from()`, `tryFrom()` и `->value`.
 
 ## Известные ограничения

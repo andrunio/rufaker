@@ -13,14 +13,22 @@ use RuFaker\Enum\Gender;
 final class GenderTest extends TestCase
 {
     #[Test]
-    public function it_treats_only_the_female_case_as_female(): void
+    public function it_tells_the_two_cases_apart(): void
     {
+        $this->assertTrue(
+            Gender::Male->isMale(),
+        );
+
+        $this->assertFalse(
+            Gender::Male->isFemale(),
+        );
+
         $this->assertTrue(
             Gender::Female->isFemale(),
         );
 
         $this->assertFalse(
-            Gender::Male->isFemale(),
+            Gender::Female->isMale(),
         );
     }
 

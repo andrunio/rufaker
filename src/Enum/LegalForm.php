@@ -21,6 +21,36 @@ enum LegalForm: string
     private const string SoleProprietor = '40802';
 
     /**
+     * Returns the short label of this form, the one that opens an abbreviated name.
+     *
+     * @return string
+     */
+    public function shortTitle(): string
+    {
+        return match ($this) {
+            self::Ooo => 'ООО',
+            self::Ao => 'АО',
+            self::Pao => 'ПАО',
+            self::Ip => 'ИП',
+        };
+    }
+
+    /**
+     * Returns the full label of this form, spelled as in classifier OK 028-2012.
+     *
+     * @return string
+     */
+    public function fullTitle(): string
+    {
+        return match ($this) {
+            self::Ooo => 'Общество с ограниченной ответственностью',
+            self::Ao => 'Акционерное общество',
+            self::Pao => 'Публичное акционерное общество',
+            self::Ip => 'Индивидуальный предприниматель',
+        };
+    }
+
+    /**
      * Number of digits in the INN of this form.
      *
      * @return int
