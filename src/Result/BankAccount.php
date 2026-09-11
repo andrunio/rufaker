@@ -16,6 +16,24 @@ final readonly class BankAccount implements Result
 {
     use ArrayValue;
 
+    /** Identifier of the bank the accounts are opened in. */
+    public string $bik;
+
+    /** Account the bank itself holds with the Bank of Russia. */
+    public string $correspondent;
+
+    /** Account the customer holds with the bank. */
+    public string $settlement;
+
+    /** Bank identifier as the requisite it came from. */
+    private Bik $bikType;
+
+    /** Correspondent account as the requisite it came from. */
+    private Account $correspondentType;
+
+    /** Settlement account as the requisite it came from. */
+    private Account $settlementType;
+
     /**
      * Assembles payment details, rejecting an account not keyed to the given bank.
      *
@@ -25,9 +43,9 @@ final readonly class BankAccount implements Result
      * @throws InvalidRequisite
      */
     public function __construct(
-        public Bik     $bik,
-        public Account $correspondent,
-        public Account $settlement,
+        Bik     $bik,
+        Account $correspondent,
+        Account $settlement,
     )
     {
         if (!Account::isValid($correspondent->value, $bik)) {
@@ -45,6 +63,44 @@ final readonly class BankAccount implements Result
         if ($settlement->isCorrespondent()) {
             throw InvalidRequisite::because("Account $settlement->value is a correspondent one.");
         }
+
+        $this->bikType = $bik;
+        $this->correspondentType = $correspondent;
+        $this->settlementType = $settlement;
+
+        $this->bik = $bik->value;
+        $this->correspondent = $correspondent->value;
+        $this->settlement = $settlement->value;
+    }
+
+    /**
+     * Returns the bank identifier as a requisite.
+     *
+     * @return Bik
+     */
+    public function bik(): Bik
+    {
+        return $this->bikType;
+    }
+
+    /**
+     * Returns the correspondent account as a requisite.
+     *
+     * @return Account
+     */
+    public function correspondent(): Account
+    {
+        return $this->correspondentType;
+    }
+
+    /**
+     * Returns the settlement account as a requisite.
+     *
+     * @return Account
+     */
+    public function settlement(): Account
+    {
+        return $this->settlementType;
     }
 
     /**
@@ -55,9 +111,9 @@ final readonly class BankAccount implements Result
     public function toArray(): array
     {
         return [
-            'bik' => $this->bik->value,
-            'correspondent_account' => $this->correspondent->value,
-            'settlement_account' => $this->settlement->value,
+            'bik' => $this->bik,
+            'correspondent_account' => $this->correspondent,
+            'settlement_account' => $this->settlement,
         ];
     }
 }

@@ -51,7 +51,7 @@ final class AccountTest extends TestCase
     public function it_rejects_every_single_digit_change_in_a_customer_account(): void
     {
         $bik = Bik::from(self::MOSCOW_BIK);
-        $account = Account::complete('40702810000000000001', $bik)->value;
+        $account = Account::fromDraft('40702810000000000001', $bik)->value;
 
         $this->assertBrokenByEveryChange($account, $bik, 0);
     }
@@ -72,12 +72,12 @@ final class AccountTest extends TestCase
     {
         $this->assertSame(
             self::MOSCOW_CORRESPONDENT,
-            Account::complete('30101810000000000225', Bik::from(self::MOSCOW_BIK))->value,
+            Account::fromDraft('30101810000000000225', Bik::from(self::MOSCOW_BIK))->value,
         );
 
         $this->assertSame(
             self::NORTHWEST_CORRESPONDENT,
-            Account::complete('30101810000000000653', Bik::from(self::NORTHWEST_BIK))->value,
+            Account::fromDraft('30101810000000000653', Bik::from(self::NORTHWEST_BIK))->value,
         );
     }
 
@@ -85,7 +85,7 @@ final class AccountTest extends TestCase
     public function it_tells_a_customer_account_from_a_correspondent_one(): void
     {
         $bik = Bik::from(self::MOSCOW_BIK);
-        $account = Account::complete('40702810000000000001', $bik);
+        $account = Account::fromDraft('40702810000000000001', $bik);
 
         $this->assertTrue(
             Account::isValid($account->value, $bik),
@@ -105,7 +105,7 @@ final class AccountTest extends TestCase
     {
         $this->expectException(InvalidRequisite::class);
 
-        Account::complete('4070281000000000', Bik::from(self::MOSCOW_BIK));
+        Account::fromDraft('4070281000000000', Bik::from(self::MOSCOW_BIK));
     }
 
     #[Test]

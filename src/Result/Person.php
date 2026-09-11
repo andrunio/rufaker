@@ -17,6 +17,15 @@ final readonly class Person implements Result, Stringable
 {
     use ArrayValue;
 
+    /** Gender every part of the name agrees with. */
+    public string $gender;
+
+    /** Name in the official order: last name, first name, patronymic. */
+    public string $fullName;
+
+    /** Gender as the enum case it came from. */
+    private Gender $genderType;
+
     /**
      * Assembles a full name, rejecting a part left empty.
      *
@@ -27,7 +36,7 @@ final readonly class Person implements Result, Stringable
      * @throws InvalidRequisite
      */
     public function __construct(
-        public Gender $gender,
+        Gender        $gender,
         public string $lastName,
         public string $firstName,
         public string $patronymic,
@@ -44,16 +53,20 @@ final readonly class Person implements Result, Stringable
                 throw InvalidRequisite::because("A person must have a $part.");
             }
         }
+
+        $this->genderType = $gender;
+        $this->gender = $gender->value;
+        $this->fullName = "$lastName $firstName $patronymic";
     }
 
     /**
-     * Returns the name in the official order: last name, first name, patronymic.
+     * Returns the gender as an enum case.
      *
-     * @return string
+     * @return Gender
      */
-    public function full(): string
+    public function gender(): Gender
     {
-        return "$this->lastName $this->firstName $this->patronymic";
+        return $this->genderType;
     }
 
     /**
@@ -64,7 +77,7 @@ final readonly class Person implements Result, Stringable
     public function toArray(): array
     {
         return [
-            'gender' => $this->gender->value,
+            'gender' => $this->gender,
             'last_name' => $this->lastName,
             'first_name' => $this->firstName,
             'patronymic' => $this->patronymic,
@@ -79,6 +92,6 @@ final readonly class Person implements Result, Stringable
     #[Override]
     public function __toString(): string
     {
-        return $this->full();
+        return $this->fullName;
     }
 }

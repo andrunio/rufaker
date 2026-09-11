@@ -20,7 +20,7 @@ final class PersonTest extends TestCase
     {
         $this->assertSame(
             'Иванов Иван Иванович',
-            $this->ivanov()->full(),
+            $this->ivanov()->fullName,
         );
     }
 
@@ -31,7 +31,7 @@ final class PersonTest extends TestCase
 
         $this->assertSame(
             Gender::Male,
-            $person->gender,
+            $person->gender(),
         );
 
         $this->assertSame(
@@ -102,6 +102,17 @@ final class PersonTest extends TestCase
         $this->expectExceptionMessage($message);
 
         new Person(Gender::Male, $lastName, $firstName, $patronymic);
+    }
+
+    #[Test]
+    public function it_gives_a_typed_form_of_the_gender(): void
+    {
+        $person = $this->ivanov();
+
+        $this->assertSame(
+            $person->gender,
+            $person->gender()->value,
+        );
     }
 
     /**

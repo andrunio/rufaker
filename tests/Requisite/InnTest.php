@@ -46,20 +46,20 @@ final class InnTest extends TestCase
     }
 
     #[Test]
-    public function it_completes_an_organization_body(): void
+    public function it_builds_an_organization_inn_from_its_body(): void
     {
         $this->assertSame(
             '7707083893',
-            Inn::complete('770708389')->value,
+            Inn::fromBody('770708389')->value,
         );
     }
 
     #[Test]
-    public function it_completes_a_personal_body(): void
+    public function it_builds_a_personal_inn_from_its_body(): void
     {
         $this->assertSame(
             '500100732259',
-            Inn::complete('5001007322')->value,
+            Inn::fromBody('5001007322')->value,
         );
     }
 
@@ -68,7 +68,7 @@ final class InnTest extends TestCase
     {
         $this->expectException(InvalidRequisite::class);
 
-        Inn::complete('12345678');
+        Inn::fromBody('12345678');
     }
 
     #[Test]

@@ -59,24 +59,25 @@ final readonly class Inn implements Requisite
     public static function isValid(string $value): bool
     {
         if (Digits::areDigits($value, 10)) {
-            return $value === self::complete(substr($value, 0, 9))->value;
+            return $value === self::fromBody(substr($value, 0, 9))->value;
         }
 
         if (Digits::areDigits($value, 12)) {
-            return $value === self::complete(substr($value, 0, 10))->value;
+            return $value === self::fromBody(substr($value, 0, 10))->value;
         }
 
         return false;
     }
 
     /**
-     * Appends the checksum to nine leading digits of an organization INN or ten of a personal one.
+     * Builds an INN out of its body: nine leading digits of an organization one or ten of a personal.
      *
+     * @internal
      * @param string $body
      * @return self
      * @throws InvalidRequisite
      */
-    public static function complete(string $body): self
+    public static function fromBody(string $body): self
     {
         if (Digits::areDigits($body, 9)) {
             return new self($body . self::checksum($body, self::WEIGHTS_10));

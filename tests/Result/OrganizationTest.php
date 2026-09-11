@@ -57,17 +57,17 @@ final class OrganizationTest extends TestCase
 
         $this->assertSame(
             LegalForm::Pao,
-            $organization->form,
+            $organization->form(),
         );
 
         $this->assertSame(
             self::SBERBANK_INN,
-            $organization->inn->value,
+            $organization->inn,
         );
 
         $this->assertSame(
             self::SBERBANK_KPP,
-            $organization->kpp?->value,
+            $organization->kpp,
         );
     }
 
@@ -78,12 +78,12 @@ final class OrganizationTest extends TestCase
 
         $this->assertSame(
             LegalForm::Ip,
-            $organization->form,
+            $organization->form(),
         );
 
         $this->assertSame(
             self::SOLE_PROPRIETOR_OGRN,
-            $organization->ogrn->value,
+            $organization->ogrn,
         );
 
         $this->assertNull(
@@ -187,7 +187,7 @@ final class OrganizationTest extends TestCase
     {
         $this->assertSame(
             'Иванов Иван Иванович',
-            $this->soleProprietor()->person?->full(),
+            $this->soleProprietor()->person()?->fullName,
         );
     }
 
@@ -274,6 +274,57 @@ final class OrganizationTest extends TestCase
             '{"form":"pao","region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
             . '"person":null}',
             json_encode($organization),
+        );
+    }
+
+    #[Test]
+    public function it_gives_a_typed_form_of_every_field(): void
+    {
+        $organization = $this->sberbank();
+
+        $this->assertSame(
+            $organization->form,
+            $organization->form()->value,
+        );
+
+        $this->assertSame(
+            $organization->region,
+            $organization->region()->value,
+        );
+
+        $this->assertSame(
+            $organization->inn,
+            $organization->inn()->value,
+        );
+
+        $this->assertSame(
+            $organization->ogrn,
+            $organization->ogrn()->value,
+        );
+
+        $this->assertSame(
+            $organization->kpp,
+            $organization->kpp()?->value,
+        );
+
+        $this->assertNull(
+            $organization->person(),
+        );
+    }
+
+    #[Test]
+    public function it_gives_the_name_of_a_sole_proprietor_part_by_part(): void
+    {
+        $person = $this->soleProprietor()->person();
+
+        $this->assertInstanceOf(
+            Person::class,
+            $person,
+        );
+
+        $this->assertSame(
+            'Иван',
+            $person->firstName,
         );
     }
 

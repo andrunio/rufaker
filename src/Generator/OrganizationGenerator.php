@@ -127,7 +127,7 @@ final readonly class OrganizationGenerator
         // The region takes the first two digits, the checksum the last one or two.
         $body = $form->innDigits() - $form->innChecksumDigits();
 
-        return Inn::complete($region->value . $this->digits($body - 2));
+        return Inn::fromBody($region->value . $this->digits($body - 2));
     }
 
     /**
@@ -143,7 +143,7 @@ final readonly class OrganizationGenerator
         // Prefix, year, region and tax office take seven digits, the checksum takes the eighth.
         $sequence = $form->registryNumberDigits() - 8;
 
-        return Ogrn::complete(
+        return Ogrn::fromBody(
             $form->registryNumberPrefix()
             . $this->year()
             . $region->value

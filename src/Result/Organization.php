@@ -19,6 +19,39 @@ final readonly class Organization implements Result
 {
     use ArrayValue;
 
+    /** Legal form the requisites are built for. */
+    public string $form;
+
+    /** Code of the federal subject every requisite belongs to. */
+    public string $region;
+
+    /** Taxpayer number. */
+    public string $inn;
+
+    /** State registry number. */
+    public string $ogrn;
+
+    /** Tax registration reason code; a sole proprietor has none. */
+    public ?string $kpp;
+
+    /** Legal form as the enum case it came from. */
+    private LegalForm $formType;
+
+    /** Region as the requisite it came from. */
+    private Region $regionType;
+
+    /** Taxpayer number as the requisite it came from. */
+    private Inn $innType;
+
+    /** State registry number as the requisite it came from. */
+    private Ogrn $ogrnType;
+
+    /** Tax registration reason code as the requisite it came from. */
+    private ?Kpp $kppType;
+
+    /** Full name of the sole proprietor; a legal entity has none. */
+    private ?Person $personType;
+
     /**
      * Assembles business requisites, rejecting a set that contradicts itself.
      *
@@ -31,12 +64,12 @@ final readonly class Organization implements Result
      * @throws InvalidRequisite
      */
     public function __construct(
-        public LegalForm $form,
-        public Region    $region,
-        public Inn       $inn,
-        public Ogrn      $ogrn,
-        public ?Kpp      $kpp = null,
-        public ?Person   $person = null,
+        LegalForm $form,
+        Region    $region,
+        Inn       $inn,
+        Ogrn      $ogrn,
+        ?Kpp      $kpp = null,
+        ?Person   $person = null,
     )
     {
         $innDigits = $form->innDigits();
@@ -69,6 +102,79 @@ final readonly class Organization implements Result
         if ($kpp instanceof Kpp && $kpp->region()?->value !== $region->value) {
             throw InvalidRequisite::because("KPP $kpp->value does not belong to region $region->value.");
         }
+
+        $this->formType = $form;
+        $this->regionType = $region;
+        $this->innType = $inn;
+        $this->ogrnType = $ogrn;
+        $this->kppType = $kpp;
+        $this->personType = $person;
+
+        $this->form = $form->value;
+        $this->region = $region->value;
+        $this->inn = $inn->value;
+        $this->ogrn = $ogrn->value;
+        $this->kpp = $kpp?->value;
+    }
+
+    /**
+     * Returns the legal form as an enum case.
+     *
+     * @return LegalForm
+     */
+    public function form(): LegalForm
+    {
+        return $this->formType;
+    }
+
+    /**
+     * Returns the region as a requisite.
+     *
+     * @return Region
+     */
+    public function region(): Region
+    {
+        return $this->regionType;
+    }
+
+    /**
+     * Returns the taxpayer number as a requisite.
+     *
+     * @return Inn
+     */
+    public function inn(): Inn
+    {
+        return $this->innType;
+    }
+
+    /**
+     * Returns the state registry number as a requisite.
+     *
+     * @return Ogrn
+     */
+    public function ogrn(): Ogrn
+    {
+        return $this->ogrnType;
+    }
+
+    /**
+     * Returns the tax registration reason code as a requisite.
+     *
+     * @return Kpp|null
+     */
+    public function kpp(): ?Kpp
+    {
+        return $this->kppType;
+    }
+
+    /**
+     * Returns the full name of the sole proprietor.
+     *
+     * @return Person|null
+     */
+    public function person(): ?Person
+    {
+        return $this->personType;
     }
 
     /**
@@ -79,12 +185,12 @@ final readonly class Organization implements Result
     public function toArray(): array
     {
         return [
-            'form' => $this->form->value,
-            'region' => $this->region->value,
-            'inn' => $this->inn->value,
-            'ogrn' => $this->ogrn->value,
-            'kpp' => $this->kpp?->value,
-            'person' => $this->person?->full(),
+            'form' => $this->form,
+            'region' => $this->region,
+            'inn' => $this->inn,
+            'ogrn' => $this->ogrn,
+            'kpp' => $this->kpp,
+            'person' => $this->personType?->fullName,
         ];
     }
 }

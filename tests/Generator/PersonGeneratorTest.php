@@ -33,7 +33,7 @@ final class PersonGeneratorTest extends TestCase
 
             $this->assertSame(
                 $gender,
-                $person->gender,
+                $person->gender(),
             );
 
             $this->assertContains(
@@ -60,7 +60,7 @@ final class PersonGeneratorTest extends TestCase
         $drawn = [];
 
         foreach (range(1, self::RUNS) as $ignored) {
-            $drawn[$generator->generate()->gender->value] = true;
+            $drawn[$generator->generate()->gender] = true;
         }
 
         $this->assertArrayHasKey(
@@ -81,7 +81,7 @@ final class PersonGeneratorTest extends TestCase
 
         foreach (range(1, self::RUNS) as $ignored) {
             $person = $generator->generate();
-            $ending = $person->gender->isFemale() ? '/на$/u' : '/ич$/u';
+            $ending = $person->gender()->isFemale() ? '/на$/u' : '/ич$/u';
 
             $this->assertMatchesRegularExpression(
                 $ending,

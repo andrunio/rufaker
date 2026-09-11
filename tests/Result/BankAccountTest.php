@@ -40,15 +40,15 @@ final class BankAccountTest extends TestCase
 
         $this->assertSame(
             self::MOSCOW_BIK,
-            $details->bik->value,
+            $details->bik,
         );
 
         $this->assertTrue(
-            $details->correspondent->isCorrespondent(),
+            $details->correspondent()->isCorrespondent(),
         );
 
         $this->assertFalse(
-            $details->settlement->isCorrespondent(),
+            $details->settlement()->isCorrespondent(),
         );
     }
 
@@ -130,6 +130,27 @@ final class BankAccountTest extends TestCase
         $this->assertSame(
             '{"bik":"044525225","correspondent_account":"30101810400000000225","settlement_account":"40702810200000000001"}',
             json_encode($details),
+        );
+    }
+
+    #[Test]
+    public function it_gives_a_typed_form_of_every_field(): void
+    {
+        $details = $this->details();
+
+        $this->assertSame(
+            $details->bik,
+            $details->bik()->value,
+        );
+
+        $this->assertSame(
+            $details->correspondent,
+            $details->correspondent()->value,
+        );
+
+        $this->assertSame(
+            $details->settlement,
+            $details->settlement()->value,
         );
     }
 

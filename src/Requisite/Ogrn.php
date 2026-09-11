@@ -56,24 +56,25 @@ final readonly class Ogrn implements Requisite
     public static function isValid(string $value): bool
     {
         if (Digits::areDigits($value, 13)) {
-            return $value === self::complete(substr($value, 0, 12))->value;
+            return $value === self::fromBody(substr($value, 0, 12))->value;
         }
 
         if (Digits::areDigits($value, 15)) {
-            return $value === self::complete(substr($value, 0, 14))->value;
+            return $value === self::fromBody(substr($value, 0, 14))->value;
         }
 
         return false;
     }
 
     /**
-     * Appends the checksum to twelve leading digits of an OGRN or fourteen of an OGRNIP.
+     * Builds a registry number out of its body: twelve leading digits of an OGRN or fourteen of an OGRNIP.
      *
+     * @internal
      * @param string $body
      * @return self
      * @throws InvalidRequisite
      */
-    public static function complete(string $body): self
+    public static function fromBody(string $body): self
     {
         if (Digits::areDigits($body, 12)) {
             return new self($body . self::checksum($body, self::DIVISOR_13));

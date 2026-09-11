@@ -31,11 +31,11 @@ final class BankAccountGeneratorTest extends TestCase
             $details = $generator->generate();
 
             $this->assertTrue(
-                Account::isValid($details->correspondent->value, $details->bik),
+                Account::isValid($details->correspondent, $details->bik()),
             );
 
             $this->assertTrue(
-                Account::isValid($details->settlement->value, $details->bik),
+                Account::isValid($details->settlement, $details->bik()),
             );
         }
     }
@@ -49,8 +49,8 @@ final class BankAccountGeneratorTest extends TestCase
             $details = $generator->generate();
 
             $this->assertSame(
-                $details->bik->participant(),
-                substr($details->correspondent->value, -3),
+                $details->bik()->participant(),
+                substr($details->correspondent, -3),
             );
         }
     }
@@ -62,12 +62,12 @@ final class BankAccountGeneratorTest extends TestCase
 
         $this->assertStringStartsWith(
             '40802',
-            $details->settlement->value,
+            $details->settlement,
         );
 
         $this->assertStringStartsWith(
             '40702',
-            $this->generator()->generate(null, LegalForm::Ooo)->settlement->value,
+            $this->generator()->generate(null, LegalForm::Ooo)->settlement,
         );
     }
 
@@ -78,12 +78,12 @@ final class BankAccountGeneratorTest extends TestCase
 
         $this->assertSame(
             '044525225',
-            $details->bik->value,
+            $details->bik,
         );
 
         $this->assertSame(
             '30101810400000000225',
-            $details->correspondent->value,
+            $details->correspondent,
         );
     }
 
