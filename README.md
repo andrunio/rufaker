@@ -35,11 +35,13 @@ $ru = new RuFaker();
 
 $company = $ru->organization();
 
-$company->form;    // 'ООО'
-$company->inn;     // '1492876987'
-$company->ogrn;    // '1101459307355'
-$company->kpp;     // '145901001'
-$company->region;  // '14'
+$company->shortName;  // 'ООО "Ромашка"'
+$company->fullName;   // 'Общество с ограниченной ответственностью "Ромашка"'
+$company->form;       // 'ООО'
+$company->inn;        // '1492876987'
+$company->ogrn;       // '1101459307355'
+$company->kpp;        // '145901001'
+$company->region;     // '14'
 
 $bank = $ru->bankAccount();
 
@@ -88,6 +90,8 @@ $person->gender()->value;                // 'male'
 $company->toArray();
 // [
 //     'form' => 'ООО',
+//     'short_name' => 'ООО "Ромашка"',
+//     'full_name' => 'Общество с ограниченной ответственностью "Ромашка"',
 //     'region' => '14',
 //     'inn' => '1492876987',
 //     'ogrn' => '1101459307355',
@@ -112,10 +116,11 @@ use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Requisite\Region;
 
-$ru->organization();                                     // форма и регион случайные
-$ru->organization(LegalForm::Ip);                        // форма задана
-$ru->organization(LegalForm::Ooo, Region::from('77'));   // и регион
-$ru->organization(LegalForm::Ip, null, Gender::Female);  // пол предпринимателя
+$ru->organization();                                        // форма и регион случайные
+$ru->organization(LegalForm::Ip);                           // форма задана
+$ru->organization(LegalForm::Ooo, Region::from('77'));      // и регион
+$ru->organization(LegalForm::Ip, null, Gender::Female);     // пол предпринимателя
+$ru->organization(LegalForm::Ip, initials: true);           // ФИО в наименовании — инициалами
 ```
 
 Формы — `Ooo`, `Ao`, `Pao`, `Ip`. Форма определяет всё остальное: длину ИНН и ОГРН, наличие КПП,
@@ -124,6 +129,8 @@ $ru->organization(LegalForm::Ip, null, Gender::Female);  // пол предпр�
 
 | Поле | Юридическое лицо | Индивидуальный предприниматель |
 |---|---|---|
+| `shortName` | ярлык формы и название: `ООО "Ромашка"` | `ИП` и ФИО целиком |
+| `fullName` | форма целиком и название | `Индивидуальный предприниматель` и ФИО |
 | `inn` | 10 знаков | 12 знаков |
 | `ogrn` | 13 знаков, ОГРН | 15 знаков, ОГРНИП |
 | `kpp` | 9 знаков | `null` |
@@ -133,11 +140,21 @@ $ru->organization(LegalForm::Ip, null, Gender::Female);  // пол предпр�
 ```php
 $entrepreneur = $ru->organization(LegalForm::Ip, Region::from('66'));
 
+$entrepreneur->shortName;            // 'ИП Успенский Пётр Иванович'
 $entrepreneur->inn;                  // '664429287641'
 $entrepreneur->ogrn;                 // '310663730735974'
 $entrepreneur->kpp;                  // null
 $entrepreneur->person()->fullName;   // 'Успенский Пётр Иванович'
 $entrepreneur->person()->lastName;   // 'Успенский'
+```
+
+Название юрлица берётся из словаря пакета — 127 слов, по одному слову в кавычках.
+
+У предпринимателя наименование строится из ФИО, и у него есть третья, неофициальная форма —
+с инициалами. Она включается флагом при генерации:
+
+```php
+$ru->organization(LegalForm::Ip, initials: true)->shortName;  // 'ИП Абрамова А.С.'
 ```
 
 ### ФИО
@@ -227,6 +244,7 @@ public function definition(): array
     $company = (new RuFaker())->organization(LegalForm::Ooo);
 
     return [
+        'title' => $company->shortName,
         'inn' => $company->inn,
         'kpp' => $company->kpp,
         'ogrn' => $company->ogrn,
@@ -237,7 +255,7 @@ public function definition(): array
 Если имена колонок совпадают с ключами набора, разворачивается целиком:
 
 ```php
-return [...$company->toArray(), 'title' => 'Тестовая организация'];
+return [...$company->toArray(), 'is_active' => true];
 ```
 
 ### Фикстура в JSON
@@ -249,6 +267,8 @@ file_put_contents(
 );
 // {
 //     "form": "ИП",
+//     "short_name": "ИП Куликова Лариса Григорьевна",
+//     "full_name": "Индивидуальный предприниматель Куликова Лариса Григорьевна",
 //     "region": "77",
 //     "inn": "774726767382",
 //     "ogrn": "321774281546078",
@@ -266,6 +286,8 @@ file_put_contents(
 RuFaker::seeded(1234)->organization()->toArray();
 // [
 //     'form' => 'ИП',
+//     'short_name' => 'ИП Абрамова Анна Саввична',
+//     'full_name' => 'Индивидуальный предприниматель Абрамова Анна Саввична',
 //     'region' => '55',
 //     'inn' => '555104382976',
 //     'ogrn' => '302556771471859',
@@ -327,7 +349,7 @@ $second->settlement;    // '40702810800008330269'
 
 | Вызов | Отдаёт |
 |---|---|
-| `organization(?LegalForm, ?Region, ?Gender)` | `Result\Organization` |
+| `organization(?LegalForm, ?Region, ?Gender, bool $initials = false)` | `Result\Organization` |
 | `person(?Gender)` | `Result\Person` |
 | `bankAccount(?Bik, ?LegalForm)` | `Result\BankAccount` |
 | `inn(?LegalForm, ?Region)` | `Requisite\Inn` |
@@ -340,6 +362,7 @@ $second->settlement;    // '40702810800008330269'
 
 | Поле | Без скобок | Со скобками |
 |---|---|---|
+| `$company->shortName`, `$company->fullName` | `string` | — |
 | `$company->form` | `string` | `Enum\LegalForm` |
 | `$company->region` | `string` | `Requisite\Region` |
 | `$company->inn` | `string` | `Requisite\Inn` |
@@ -373,6 +396,7 @@ $second->settlement;    // '40702810800008330269'
 
 ## Известные ограничения
 
+- Название юрлица — одно слово из словаря в 127 слов.
 - Код территории внутри БИК не связан с регионом организации: соответствие кодов ОКАТО и кодов
   ФНС требует справочника, а справочники в пакет намеренно не включаются.
 - Счёт считается открытым в подразделении Банка России, если его номер начинается на `301`.

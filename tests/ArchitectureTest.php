@@ -29,7 +29,7 @@ final class ArchitectureTest extends TestCase
                 }
 
                 $this->assertTrue(
-                    class_exists($import) || interface_exists($import),
+                    class_exists($import) || interface_exists($import) || trait_exists($import),
                     "$path imports $import, which does not exist.",
                 );
 
@@ -134,22 +134,41 @@ final class ArchitectureTest extends TestCase
         }
     }
 
+    #[Test]
+    public function everything_inside_internal_is_marked_internal(): void
+    {
+        foreach ($this->sources() as $path => $contents) {
+            if (!str_starts_with($path, 'Internal/')) {
+                continue;
+            }
+
+            $this->assertMatchesRegularExpression(
+                '/^ \* @internal$/m',
+                $contents,
+                "Declaration in $path must carry @internal: the package promises that everything "
+                . 'in RuFaker\\Internal changes without notice, and the promise needs the mark.',
+            );
+        }
+    }
+
     /**
-     * Reads every PHP source of the package, keyed by file name.
+     * Reads every PHP source of the package, keyed by its path inside src.
      *
      * @return array<string, string>
      */
     private function sources(): array
     {
         $sources = [];
+        $root = dirname(__DIR__) . '/src';
 
         /** @var SplFileInfo $file */
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__) . '/src')) as $file) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root)) as $file) {
             if ($file->getExtension() !== 'php') {
                 continue;
             }
 
-            $sources[$file->getFilename()] = (string)file_get_contents($file->getPathname());
+            $path = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root) + 1));
+            $sources[$path] = (string)file_get_contents($file->getPathname());
         }
 
         return $sources;

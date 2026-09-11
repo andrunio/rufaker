@@ -67,11 +67,17 @@ final readonly class RuFaker
      * @param LegalForm|null $form
      * @param Region|null $region
      * @param Gender|null $gender
+     * @param bool $initials
      * @return Organization
      */
-    public function organization(?LegalForm $form = null, ?Region $region = null, ?Gender $gender = null): Organization
+    public function organization(
+        ?LegalForm $form = null,
+        ?Region    $region = null,
+        ?Gender    $gender = null,
+        bool       $initials = false,
+    ): Organization
     {
-        return $this->organizations->generate($form, $region, $gender);
+        return $this->organizations->generate($form, $region, $gender, $initials);
     }
 
     /**

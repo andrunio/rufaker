@@ -12,6 +12,7 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Generator\OrganizationGenerator;
+use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
@@ -127,6 +128,44 @@ final class OrganizationGeneratorTest extends TestCase
         $this->assertStringStartsWith(
             '77',
             $organization->inn,
+        );
+    }
+
+    #[Test]
+    public function it_names_a_legal_entity_out_of_the_title_book(): void
+    {
+        $generator = $this->generator();
+
+        $expected = array_map(
+            static fn(string $title): string => 'ООО "' . $title . '"',
+            TitleBook::titles(),
+        );
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $this->assertContains(
+                $generator->generate(LegalForm::Ooo)->shortName,
+                $expected,
+            );
+        }
+    }
+
+    #[Test]
+    public function it_cuts_a_sole_proprietor_to_initials_only_when_asked(): void
+    {
+        $generator = $this->generator();
+
+        $plain = $generator->generate(LegalForm::Ip);
+
+        $this->assertSame(
+            'ИП ' . $plain->person()?->fullName,
+            $plain->shortName,
+        );
+
+        $short = $generator->generate(LegalForm::Ip, initials: true);
+
+        $this->assertMatchesRegularExpression(
+            '/^ИП [А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.$/u',
+            $short->shortName,
         );
     }
 
