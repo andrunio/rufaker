@@ -11,7 +11,7 @@ use RuFaker\Requisite\Account;
 use RuFaker\Requisite\Bik;
 
 /**
- * Payment details of one customer: a bank and its two accounts, all keyed to the same BIK.
+ * Payment details of one customer: a named bank and its two accounts, all keyed to the same BIK.
  */
 final readonly class BankAccount implements Result
 {
