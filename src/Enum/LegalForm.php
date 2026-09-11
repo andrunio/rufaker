@@ -117,7 +117,7 @@ enum LegalForm: string
      */
     public function hasKpp(): bool
     {
-        return !$this->isIndividual();
+        return $this->isCorporate();
     }
 
     /**
@@ -128,5 +128,15 @@ enum LegalForm: string
     public function isIndividual(): bool
     {
         return $this === self::Ip;
+    }
+
+    /**
+     * Tells whether the form is a company rather than a sole proprietor.
+     *
+     * @return bool
+     */
+    public function isCorporate(): bool
+    {
+        return !$this->isIndividual();
     }
 }

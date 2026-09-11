@@ -49,6 +49,10 @@ final class LegalFormTest extends TestCase
         $this->assertFalse(
             $form->isIndividual(),
         );
+
+        $this->assertTrue(
+            $form->isCorporate(),
+        );
     }
 
     #[Test]
@@ -88,15 +92,24 @@ final class LegalFormTest extends TestCase
         $this->assertTrue(
             $form->isIndividual(),
         );
+
+        $this->assertFalse(
+            $form->isCorporate(),
+        );
     }
 
     #[Test]
-    public function it_tells_the_two_kinds_apart_by_the_kpp_alone(): void
+    public function it_tells_the_two_kinds_apart(): void
     {
         foreach (LegalForm::cases() as $form) {
             $this->assertSame(
-                $form->hasKpp(),
+                $form->isCorporate(),
                 !$form->isIndividual(),
+            );
+
+            $this->assertSame(
+                $form->hasKpp(),
+                $form->isCorporate(),
             );
         }
     }

@@ -138,14 +138,14 @@ $ru->organization(LegalForm::Ip, initials: true);           // ФИО в наи�
 | `region` | 2 знака, общий для всех реквизитов набора | то же |
 
 ```php
-$entrepreneur = $ru->organization(LegalForm::Ip, Region::from('66'));
+$company = $ru->organization(LegalForm::Ip, Region::from('66'));
 
-$entrepreneur->shortName;            // 'ИП Успенский Пётр Иванович'
-$entrepreneur->inn;                  // '664429287641'
-$entrepreneur->ogrn;                 // '310663730735974'
-$entrepreneur->kpp;                  // null
-$entrepreneur->person()->fullName;   // 'Успенский Пётр Иванович'
-$entrepreneur->person()->lastName;   // 'Успенский'
+$company->shortName;           // 'ИП Успенский Пётр Иванович'
+$company->inn;                 // '664429287641'
+$company->ogrn;                // '310663730735974'
+$company->kpp;                 // null
+$company->person()->fullName;  // 'Успенский Пётр Иванович'
+$company->person()->lastName;  // 'Успенский'
 ```
 
 Название юрлица берётся из словаря пакета — 127 слов, по одному слову в кавычках.
@@ -390,8 +390,8 @@ $second->settlement;    // '40702810800008330269'
 
 **Перечисления.** `Enum\LegalForm` — `Ooo`, `Ao`, `Pao`, `Ip`; умеет `innDigits()`,
 `innChecksumDigits()`, `registryNumberDigits()`, `registryNumberPrefix()`, `balanceAccount()`,
-`hasKpp()`, `isIndividual()`, `shortTitle()` и `fullTitle()`. `Enum\Gender` — `Male`, `Female`;
-умеет `title()`, `isMale()` и `isFemale()`.
+`hasKpp()`, `isIndividual()`, `isCorporate()`, `shortTitle()` и `fullTitle()`.
+`Enum\Gender` — `Male`, `Female`; умеет `title()`, `isMale()` и `isFemale()`.
 У обоих штатные `cases()`, `from()`, `tryFrom()` и `->value`.
 
 ## Известные ограничения
