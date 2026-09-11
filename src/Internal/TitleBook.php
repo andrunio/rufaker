@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace RuFaker\Internal;
 
+use Random\Randomizer;
+
 /**
  * List of proper names a business can be called, each a single word in the nominative case.
  *
@@ -150,5 +152,16 @@ final class TitleBook
     public static function titles(): array
     {
         return self::TITLES;
+    }
+
+    /**
+     * Draws one proper name out of the book.
+     *
+     * @param Randomizer $randomizer
+     * @return string
+     */
+    public static function random(Randomizer $randomizer): string
+    {
+        return self::TITLES[$randomizer->getInt(0, count(self::TITLES) - 1)];
     }
 }

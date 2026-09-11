@@ -6,6 +6,7 @@ namespace RuFaker\Generator;
 
 use Random\Randomizer;
 use RuFaker\Enum\LegalForm;
+use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Account;
 use RuFaker\Requisite\Bik;
 use RuFaker\Result\BankAccount;
@@ -39,6 +40,13 @@ final readonly class BankAccountGenerator
     /** Participant numbers below this value are reserved by the Bank of Russia. */
     private const int FIRST_PARTICIPANT = 50;
 
+    /** Forms a credit organization is founded in: a business company, never a sole proprietor. */
+    private const array FORMS = [
+        LegalForm::Ooo,
+        LegalForm::Ao,
+        LegalForm::Pao,
+    ];
+
     /**
      * Builds a generator drawing from the given randomizer.
      *
@@ -63,6 +71,8 @@ final readonly class BankAccountGenerator
             $bik,
             $this->correspondent($bik),
             $this->settlement($bik, $form ?? LegalForm::Ooo),
+            $this->bankForm($bik),
+            $this->title($bik),
         );
     }
 
@@ -113,6 +123,32 @@ final readonly class BankAccountGenerator
             . $this->digits(7),
             $bik,
         );
+    }
+
+    /**
+     * Reads the legal form of the bank off its own identifier.
+     *
+     * @param Bik $bik
+     * @return LegalForm
+     */
+    private function bankForm(Bik $bik): LegalForm
+    {
+        // The form follows the territory code, so the same BIK is never a different bank.
+        return self::FORMS[(int)$bik->territory() % count(self::FORMS)];
+    }
+
+    /**
+     * Reads the proper name of the bank off its own identifier.
+     *
+     * @param Bik $bik
+     * @return string
+     */
+    private function title(Bik $bik): string
+    {
+        $titles = TitleBook::titles();
+
+        // The name follows the participant number, and both parts of a BIK stay put.
+        return $titles[(int)$bik->participant() % count($titles)];
     }
 
     /**
