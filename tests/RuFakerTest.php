@@ -44,8 +44,8 @@ final class RuFakerTest extends TestCase
         $faker = new RuFaker();
 
         $this->assertNotSame(
-            $faker->organization()->inn->value,
-            $faker->organization()->inn->value,
+            $faker->organization()->inn,
+            $faker->organization()->inn,
         );
     }
 
@@ -57,12 +57,12 @@ final class RuFakerTest extends TestCase
 
         $this->assertSame(
             'ip',
-            $organization->form->value,
+            $organization->form,
         );
 
         $this->assertSame(
             '66',
-            $organization->region->value,
+            $organization->region,
         );
 
         $this->assertNull(
@@ -104,12 +104,12 @@ final class RuFakerTest extends TestCase
 
         $this->assertSame(
             Gender::Female,
-            $person->gender,
+            $person->gender(),
         );
 
         $this->assertSame(
             "$person->lastName $person->firstName $person->patronymic",
-            $person->full(),
+            $person->fullName,
         );
     }
 
@@ -121,7 +121,7 @@ final class RuFakerTest extends TestCase
 
         $this->assertSame(
             Gender::Male,
-            $organization->person?->gender,
+            $organization->person()?->gender(),
         );
     }
 
@@ -132,7 +132,7 @@ final class RuFakerTest extends TestCase
             ->organization(LegalForm::Ooo);
 
         $this->assertNull(
-            $organization->person,
+            $organization->person(),
         );
     }
 

@@ -66,14 +66,15 @@ final readonly class Account implements Requisite
     }
 
     /**
-     * Writes the correct control key into a twenty-digit draft; the ninth digit is ignored.
+     * Builds an account out of a twenty-digit draft, replacing its ninth digit with the correct key.
      *
+     * @internal
      * @param string $draft
      * @param Bik $bik
      * @return self
      * @throws InvalidRequisite
      */
-    public static function complete(string $draft, Bik $bik): self
+    public static function fromDraft(string $draft, Bik $bik): self
     {
         if (!Digits::areDigits($draft, 20)) {
             throw InvalidRequisite::for('account draft', $draft);

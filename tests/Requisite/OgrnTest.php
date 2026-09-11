@@ -43,20 +43,20 @@ final class OgrnTest extends TestCase
     }
 
     #[Test]
-    public function it_completes_a_legal_entity_body(): void
+    public function it_builds_a_legal_entity_number_from_its_body(): void
     {
         $this->assertSame(
             '1027700132195',
-            Ogrn::complete('102770013219')->value,
+            Ogrn::fromBody('102770013219')->value,
         );
     }
 
     #[Test]
-    public function it_completes_a_sole_proprietor_body(): void
+    public function it_builds_a_sole_proprietor_number_from_its_body(): void
     {
         $this->assertSame(
             self::SOLE_PROPRIETOR,
-            Ogrn::complete('30450010000001')->value,
+            Ogrn::fromBody('30450010000001')->value,
         );
 
         $this->assertTrue(
@@ -75,7 +75,7 @@ final class OgrnTest extends TestCase
     {
         $this->expectException(InvalidRequisite::class);
 
-        Ogrn::complete('1234567890');
+        Ogrn::fromBody('1234567890');
     }
 
     #[Test]

@@ -86,7 +86,7 @@ final readonly class BankAccountGenerator
     private function correspondent(Bik $bik): Account
     {
         // A correspondent account ends with the participant number of the bank holding it.
-        return Account::complete(
+        return Account::fromDraft(
             self::CORRESPONDENT_BALANCE
             . self::ROUBLE
             . self::KEY_PLACEHOLDER
@@ -105,7 +105,7 @@ final readonly class BankAccountGenerator
      */
     private function settlement(Bik $bik, LegalForm $form): Account
     {
-        return Account::complete(
+        return Account::fromDraft(
             $form->balanceAccount()
             . self::ROUBLE
             . self::KEY_PLACEHOLDER

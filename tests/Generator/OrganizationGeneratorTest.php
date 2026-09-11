@@ -34,16 +34,16 @@ final class OrganizationGeneratorTest extends TestCase
             $organization = $generator->generate();
 
             $this->assertTrue(
-                Inn::isValid($organization->inn->value),
+                Inn::isValid($organization->inn),
             );
 
             $this->assertTrue(
-                Ogrn::isValid($organization->ogrn->value),
+                Ogrn::isValid($organization->ogrn),
             );
 
-            if ($organization->kpp instanceof Kpp) {
+            if ($organization->kpp !== null) {
                 $this->assertTrue(
-                    Kpp::isValid($organization->kpp->value),
+                    Kpp::isValid($organization->kpp),
                 );
             }
         }
@@ -56,22 +56,22 @@ final class OrganizationGeneratorTest extends TestCase
 
         foreach (range(1, self::RUNS) as $ignored) {
             $organization = $generator->generate();
-            $region = $organization->region->value;
+            $region = $organization->region;
 
             $this->assertSame(
                 $region,
-                $organization->inn->region()?->value,
+                $organization->inn()->region()?->value,
             );
 
             $this->assertSame(
                 $region,
-                $organization->ogrn->region()?->value,
+                $organization->ogrn()->region()?->value,
             );
 
-            if ($organization->kpp instanceof Kpp) {
+            if ($organization->kpp !== null) {
                 $this->assertSame(
                     $region,
-                    $organization->kpp->region()?->value,
+                    $organization->kpp()?->region()?->value,
                 );
             }
         }
@@ -86,7 +86,7 @@ final class OrganizationGeneratorTest extends TestCase
             $organization = $generator->generate(LegalForm::Ooo);
 
             $this->assertSame(
-                substr($organization->ogrn->value, 5, 2),
+                substr($organization->ogrn, 5, 2),
                 substr((string)$organization->kpp, 2, 2),
             );
         }
@@ -100,17 +100,17 @@ final class OrganizationGeneratorTest extends TestCase
 
         $this->assertSame(
             $form->innDigits(),
-            strlen($organization->inn->value),
+            strlen($organization->inn),
         );
 
         $this->assertSame(
             $form->registryNumberDigits(),
-            strlen($organization->ogrn->value),
+            strlen($organization->ogrn),
         );
 
         $this->assertSame(
             $form->hasKpp(),
-            $organization->kpp instanceof Kpp,
+            $organization->kpp !== null,
         );
     }
 
@@ -121,12 +121,12 @@ final class OrganizationGeneratorTest extends TestCase
 
         $this->assertSame(
             '77',
-            $organization->region->value,
+            $organization->region,
         );
 
         $this->assertStringStartsWith(
             '77',
-            $organization->inn->value,
+            $organization->inn,
         );
     }
 
