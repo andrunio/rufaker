@@ -45,7 +45,7 @@ final readonly class BankAccount implements Result
     private Account $settlementType;
 
     /**
-     * Assembles payment details, rejecting an account not keyed to the given bank.
+     * Assembles payment details, rejecting an account not keyed to the given BIK.
      *
      * @param Bik $bik
      * @param Account $correspondent
