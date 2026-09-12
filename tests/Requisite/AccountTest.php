@@ -27,6 +27,9 @@ final class AccountTest extends TestCase
     /** Correspondent account that branch holds at its own division. */
     private const string NORTHWEST_CORRESPONDENT = '30101810500000000653';
 
+    /** Another bank of division 25: only the participant number tells it from Sberbank. */
+    private const string SAME_DIVISION_BIK = '044525999';
+
     /** First three digits of a correspondent account, the group held at the Bank of Russia. */
     private const int CLASSIFYING_DIGITS = 3;
 
@@ -44,6 +47,15 @@ final class AccountTest extends TestCase
     {
         $this->assertFalse(
             Account::isValid(self::MOSCOW_CORRESPONDENT, Bik::from(self::NORTHWEST_BIK)),
+        );
+    }
+
+    #[Test]
+    public function it_accepts_a_correspondent_account_of_a_bank_sharing_the_division(): void
+    {
+        // A correspondent account is keyed by the division, so every bank of it gets the same key.
+        $this->assertTrue(
+            Account::isValid(self::MOSCOW_CORRESPONDENT, Bik::from(self::SAME_DIVISION_BIK)),
         );
     }
 
@@ -119,7 +131,7 @@ final class AccountTest extends TestCase
     }
 
     #[Test]
-    public function it_throws_on_an_account_of_another_bank(): void
+    public function it_throws_on_an_account_of_another_division(): void
     {
         $this->expectException(InvalidRequisite::class);
 
@@ -127,7 +139,7 @@ final class AccountTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_null_on_an_account_of_another_bank(): void
+    public function it_returns_null_on_an_account_of_another_division(): void
     {
         $this->assertNull(
             Account::tryFrom(self::MOSCOW_CORRESPONDENT, Bik::from(self::NORTHWEST_BIK)),

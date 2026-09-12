@@ -103,7 +103,7 @@ final class BankAccountTest extends TestCase
     }
 
     #[Test]
-    public function it_rejects_a_correspondent_account_of_another_bank(): void
+    public function it_rejects_a_correspondent_account_not_keyed_to_the_bik(): void
     {
         $this->expectException(InvalidRequisite::class);
         $this->expectExceptionMessage('Correspondent account ' . self::NORTHWEST_CORRESPONDENT . ' is not keyed to BIK ' . self::MOSCOW_BIK . '.');
@@ -118,7 +118,7 @@ final class BankAccountTest extends TestCase
     }
 
     #[Test]
-    public function it_rejects_a_settlement_account_of_another_bank(): void
+    public function it_rejects_a_settlement_account_not_keyed_to_the_bik(): void
     {
         $this->expectException(InvalidRequisite::class);
         $this->expectExceptionMessage('Settlement account ' . self::NORTHWEST_SETTLEMENT . ' is not keyed to BIK ' . self::MOSCOW_BIK . '.');

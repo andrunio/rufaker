@@ -53,7 +53,7 @@ final readonly class Account implements Requisite
     }
 
     /**
-     * Tells whether the control key of the number matches the given bank.
+     * Tells whether the control key of the number matches the given BIK.
      *
      * @param string $value
      * @param Bik $bik
@@ -106,7 +106,7 @@ final readonly class Account implements Requisite
     }
 
     /**
-     * Computes the control key of the number against the given bank.
+     * Computes the control key of the number against the given BIK.
      *
      * @param string $number
      * @param Bik $bik
