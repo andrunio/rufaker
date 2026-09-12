@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-13
+
 ### Исправлено
 
 - `README.md` обещал, что `Account::isValid()` отличает один банк от другого. Ключ счёта сходится
@@ -128,7 +130,8 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/andrunio/rufaker/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/andrunio/rufaker/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/andrunio/rufaker/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/andrunio/rufaker/compare/v0.1.0...v0.2.0
