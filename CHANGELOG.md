@@ -7,13 +7,25 @@
 
 ## [Unreleased]
 
+### Добавлено
+
+- Провайдер к `fakerphp/faker`. После `$faker->addProvider(new RuFakerProvider())` весь пакет
+  доступен одним вызовом `$faker->ruFaker()`: за ним `organization()`, `person()`,
+  `bankAccount()`, `inn()`, `ogrn()`, `kpp()` и `bik()`. Реквизиты возвращаются строками,
+  наборы — массивами с ключами `toArray()`.
+- `$faker->seed()` управляет и значениями пакета, но совпадать со значениями `RuFaker::seeded()`
+  они не будут. Если нужны именно они, пакет передаётся провайдеру:
+  `new RuFakerProvider(new Values(RuFaker::seeded(1234)))`.
+- `fakerphp/faker` добавлен в `require-dev` и `suggest`. Зависимостей у пакета по-прежнему нет:
+  провайдер не использует ни одного класса Faker.
+
 ### Изменено
 
-- Генераторы наборов переехали из `RuFaker\Generator\` в `RuFaker\Internal\Generator\` и
-  помечены `@internal`. В публичном API их не было: набор выдаёт фасад — `$ru->organization()`,
-  `$ru->bankAccount()`, `$ru->person()`.
-- `Exception\InvalidRequisite::for()` и `::because()` помечены `@internal`. Исключение ловится
-  как прежде; создаёт его пакет сам, снаружи эти два метода не нужны.
+- Генераторы переехали из `RuFaker\Generator\` в `RuFaker\Internal\Generator\` и помечены
+  `@internal`. В публичном API их не было: наборы как выдавал, так и выдаёт `RuFaker` —
+  `$ru->organization()`, `$ru->bankAccount()`, `$ru->person()`.
+- `Exception\InvalidRequisite::for()` и `::because()` помечены `@internal`: исключение создаёт
+  сам пакет, снаружи эти методы не нужны. Ловить `InvalidRequisite` можно как прежде.
 
 ## [0.3.0] - 2026-09-11
 
