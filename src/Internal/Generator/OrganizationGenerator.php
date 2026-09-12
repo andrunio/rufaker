@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuFaker\Generator;
+namespace RuFaker\Internal\Generator;
 
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
@@ -16,6 +16,8 @@ use RuFaker\Result\Organization;
 
 /**
  * Builds business requisites that agree with each other.
+ *
+ * @internal
  */
 final readonly class OrganizationGenerator
 {

@@ -14,6 +14,7 @@ final class InvalidRequisite extends InvalidArgumentException implements Excepti
     /**
      * Reports a value rejected by the named requisite.
      *
+     * @internal
      * @param string $requisite
      * @param string $value
      * @return self
@@ -26,6 +27,7 @@ final class InvalidRequisite extends InvalidArgumentException implements Excepti
     /**
      * Reports requisites that contradict each other.
      *
+     * @internal
      * @param string $reason
      * @return self
      */

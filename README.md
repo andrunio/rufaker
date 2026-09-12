@@ -1,4 +1,4 @@
-# rufaker
+# RuFaker
 
 [![Tests](https://github.com/andrunio/rufaker/actions/workflows/ci.yml/badge.svg)](https://github.com/andrunio/rufaker/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/andrunio/rufaker/badges/coverage.json)](https://github.com/andrunio/rufaker/actions/workflows/ci.yml)

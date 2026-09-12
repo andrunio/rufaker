@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+### Изменено
+
+- Генераторы наборов переехали из `RuFaker\Generator\` в `RuFaker\Internal\Generator\` и
+  помечены `@internal`. В публичном API их не было: набор выдаёт фасад — `$ru->organization()`,
+  `$ru->bankAccount()`, `$ru->person()`.
+- `Exception\InvalidRequisite::for()` и `::because()` помечены `@internal`. Исключение ловится
+  как прежде; создаёт его пакет сам, снаружи эти два метода не нужны.
+
 ## [0.3.0] - 2026-09-11
 
 ### Добавлено
