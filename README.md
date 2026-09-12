@@ -313,7 +313,7 @@ RuFaker::seeded(1234)->organization()->toArray();
 //     'full_name' => 'Индивидуальный предприниматель Абрамова Анна Саввична',
 //     'region' => '55',
 //     'inn' => '555104382976',
-//     'ogrn' => '302556771471859',
+//     'ogrn' => '320556771471853',
 //     'kpp' => null,
 //     'person' => 'Абрамова Анна Саввична',
 // ]
@@ -473,8 +473,9 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 | `Region` | — | нет, только диапазон |
 
 **Перечисления.** `Enum\LegalForm` — `Ooo`, `Ao`, `Pao`, `Ip`; умеет `innDigits()`,
-`innChecksumDigits()`, `registryNumberDigits()`, `registryNumberPrefix()`, `balanceAccount()`,
-`hasKpp()`, `isIndividual()`, `isCorporate()`, `shortTitle()` и `fullTitle()`.
+`innChecksumDigits()`, `registryNumberDigits()`, `registryNumberPrefix()`,
+`registryNumberFirstYear()`, `balanceAccount()`, `hasKpp()`, `isIndividual()`, `isCorporate()`,
+`shortTitle()` и `fullTitle()`.
 `Enum\Gender` — `Male`, `Female`; умеет `title()`, `isMale()` и `isFemale()`.
 У обоих штатные `cases()`, `from()`, `tryFrom()` и `->value`.
 
@@ -507,8 +508,9 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
   разрядами дают одинаковый ключ, поэтому `Account::isValid()` примет счёт любого из них.
 - КПП выдаётся с причиной постановки на учёт `01` и порядковым номером `001`, то есть для
   головной организации. Обособленные подразделения не генерируются.
-- Год регистрации внутри ОГРН выбирается из диапазона 2002–2026 и зафиксирован константой:
-  привязка к текущей дате сломала бы воспроизводимость по seed.
+- Год регистрации внутри ОГРН начинается с года, когда открылся реестр: 2002–2026 у организации,
+  2004–2026 у предпринимателя. Верхняя граница зафиксирована константой: привязка к текущей дате
+  сломала бы воспроизводимость по seed.
 - Генерация берёт код субъекта РФ из 83 значений, а проверка принимает любой код от `01` до `99`:
   перечень кодов — данные, и он правится patch-выпуском.
 - ФИО выдаётся в именительном падеже: склонения по падежам в пакете нет.

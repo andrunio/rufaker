@@ -26,6 +26,9 @@ final class OrganizationGeneratorTest extends TestCase
     /** How many sets each property is checked over. */
     private const int RUNS = 300;
 
+    /** Latest registration year the generator may encode, mirroring its own constant. */
+    private const int LAST_YEAR = 26;
+
     #[Test]
     public function it_generates_requisites_that_pass_their_own_validation(): void
     {
@@ -116,6 +119,29 @@ final class OrganizationGeneratorTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('registryOpenings')]
+    public function it_dates_a_registry_number_within_the_life_of_its_registry(LegalForm $form, int $firstYear): void
+    {
+        $generator = $this->generator();
+        $years = [];
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            // The year sits right behind the leading digit that tells the two registries apart.
+            $years[] = (int)substr($generator->generate($form)->ogrn, 1, 2);
+        }
+
+        $this->assertSame(
+            $firstYear,
+            min($years),
+        );
+
+        $this->assertSame(
+            self::LAST_YEAR,
+            max($years),
+        );
+    }
+
+    #[Test]
     public function it_honours_a_requested_region(): void
     {
         $organization = $this->generator()->generate(LegalForm::Ooo, Region::from('77'));
@@ -185,6 +211,21 @@ final class OrganizationGeneratorTest extends TestCase
         $this->assertTrue(
             Kpp::isValid($generator->kpp()->value),
         );
+    }
+
+    /**
+     * Every form against the year its registry opened, taken from the law rather than from the code.
+     *
+     * @return array<string, array{LegalForm, int}>
+     */
+    public static function registryOpenings(): array
+    {
+        return [
+            'limited liability company' => [LegalForm::Ooo, 2],
+            'joint-stock company' => [LegalForm::Ao, 2],
+            'public joint-stock company' => [LegalForm::Pao, 2],
+            'sole proprietor' => [LegalForm::Ip, 4],
+        ];
     }
 
     /**

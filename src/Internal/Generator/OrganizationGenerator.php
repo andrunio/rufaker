@@ -24,9 +24,6 @@ final readonly class OrganizationGenerator
     /** Alphabet a random digit sequence is drawn from. */
     private const string DIGITS = '0123456789';
 
-    /** Earliest registration year encoded in a registry number, two digits. */
-    private const int FIRST_YEAR = 2;
-
     /** Latest registration year encoded in a registry number, two digits. */
     private const int LAST_YEAR = 26;
 
@@ -156,7 +153,7 @@ final readonly class OrganizationGenerator
 
         return Ogrn::fromBody(
             $form->registryNumberPrefix()
-            . $this->year()
+            . $this->year($form)
             . $region->value
             . $taxOffice
             . $this->digits($sequence),
@@ -198,13 +195,17 @@ final readonly class OrganizationGenerator
     }
 
     /**
-     * Picks a registration year out of the fixed range.
+     * Picks a registration year no earlier than the day the registry of this form opened.
      *
+     * @param LegalForm $form
      * @return string
      */
-    private function year(): string
+    private function year(LegalForm $form): string
     {
-        return sprintf('%02d', $this->randomizer->getInt(self::FIRST_YEAR, self::LAST_YEAR));
+        return sprintf(
+            '%02d',
+            $this->randomizer->getInt($form->registryNumberFirstYear(), self::LAST_YEAR),
+        );
     }
 
     /**
