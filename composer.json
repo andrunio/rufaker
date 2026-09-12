@@ -31,8 +31,12 @@
         "php": "^8.3"
     },
     "require-dev": {
+        "fakerphp/faker": "^1.24",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^12.5"
+    },
+    "suggest": {
+        "fakerphp/faker": "Register RuFaker\\Faker\\RuFakerProvider on a generator to call the package as $faker->ruFaker()"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
