@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuFaker\Generator;
+namespace RuFaker\Internal\Generator;
 
 use Random\Randomizer;
 use RuFaker\Enum\LegalForm;
@@ -13,6 +13,8 @@ use RuFaker\Result\BankAccount;
 
 /**
  * Builds payment details whose accounts are keyed to the BIK of their own bank.
+ *
+ * @internal
  */
 final readonly class BankAccountGenerator
 {

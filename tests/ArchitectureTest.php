@@ -151,6 +151,24 @@ final class ArchitectureTest extends TestCase
         }
     }
 
+    #[Test]
+    public function nothing_outside_internal_is_marked_internal(): void
+    {
+        foreach ($this->sources() as $path => $contents) {
+            if (str_starts_with($path, 'Internal/')) {
+                continue;
+            }
+
+            // A single space before the asterisk belongs to the docblock of the type: a member is indented deeper.
+            $this->assertDoesNotMatchRegularExpression(
+                '/^ \\* @internal$/m',
+                $contents,
+                "Declaration in $path carries @internal outside RuFaker\\Internal: an internal type "
+                . 'moves there instead, and only a method the language cannot hide keeps the mark.',
+            );
+        }
+    }
+
     /**
      * Reads every PHP source of the package, keyed by its path inside src.
      *

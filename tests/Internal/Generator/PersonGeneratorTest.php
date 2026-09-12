@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuFaker\Tests\Generator;
+namespace RuFaker\Tests\Internal\Generator;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
-use RuFaker\Generator\PersonGenerator;
+use RuFaker\Internal\Generator\PersonGenerator;
 use RuFaker\Internal\NameBook;
 use RuFaker\Result\Person;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuFaker\Generator;
+namespace RuFaker\Internal\Generator;
 
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
@@ -11,6 +11,8 @@ use RuFaker\Result\Person;
 
 /**
  * Builds full names whose parts agree in gender.
+ *
+ * @internal
  */
 final readonly class PersonGenerator
 {
