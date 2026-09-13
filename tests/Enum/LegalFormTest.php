@@ -38,6 +38,11 @@ final class LegalFormTest extends TestCase
         );
 
         $this->assertSame(
+            2,
+            $form->registryNumberFirstYear(),
+        );
+
+        $this->assertSame(
             '40702',
             $form->balanceAccount(),
         );
@@ -78,6 +83,11 @@ final class LegalFormTest extends TestCase
         $this->assertSame(
             '3',
             $form->registryNumberPrefix(),
+        );
+
+        $this->assertSame(
+            4,
+            $form->registryNumberFirstYear(),
         );
 
         $this->assertSame(

@@ -20,6 +20,12 @@ enum LegalForm: string
     /** Sole proprietor under first-order account 408 of Bank of Russia Regulation 809-P. */
     private const string SoleProprietor = '40802';
 
+    /** Year the register of legal entities opened under Federal Law 129-FZ, 1 July 2002. */
+    private const int CompanyRegistryOpened = 2;
+
+    /** Year the register of sole proprietors opened under Federal Law 76-FZ, 1 January 2004. */
+    private const int ProprietorRegistryOpened = 4;
+
     /**
      * Returns the short label of this form, the one that opens an abbreviated name.
      *
@@ -96,6 +102,18 @@ enum LegalForm: string
         return $this->isIndividual()
             ? '3'
             : '1';
+    }
+
+    /**
+     * Earliest year a state registry number of this form can carry, two digits.
+     *
+     * @return int
+     */
+    public function registryNumberFirstYear(): int
+    {
+        return $this->isIndividual()
+            ? self::ProprietorRegistryOpened
+            : self::CompanyRegistryOpened;
     }
 
     /**
