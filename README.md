@@ -5,8 +5,8 @@
 [![Packagist](https://img.shields.io/packagist/v/rufaker/rufaker)](https://packagist.org/packages/rufaker/rufaker)
 [![PHP](https://img.shields.io/packagist/dependency-v/rufaker/rufaker/php)](https://packagist.org/packages/rufaker/rufaker)
 
-Российские тестовые данные для PHP: ФИО, наименование и реквизиты организации, наименование банка
-и его счета — ИНН, ОГРН и ОГРНИП, КПП, БИК, корреспондентский и расчётный счёт.
+Российские тестовые данные для PHP: физлицо с ИНН, наименование и реквизиты организации,
+наименование банка и его счета — ИНН, ОГРН и ОГРНИП, КПП, БИК, корреспондентский и расчётный счёт.
 
 Отличие от генератора случайных цифр одно, и оно главное: **данные не противоречат друг другу.**
 
@@ -54,11 +54,13 @@ $bank->settlement;     // '40702810500006981360'
 
 $person = $ru->person();
 
-$person->lastName;    // 'Поляков'
-$person->firstName;   // 'Валентин'
-$person->patronymic;  // 'Арсеньевич'
+$person->lastName;    // 'Беляев'
+$person->firstName;   // 'Демьян'
+$person->patronymic;  // 'Кириллович'
 $person->gender;      // 'мужской'
-$person->fullName;    // 'Поляков Валентин Арсеньевич'
+$person->fullName;    // 'Беляев Демьян Кириллович'
+$person->birthDate;   // '1987-08-28'
+$person->inn;         // '231232028482'
 ```
 
 Все поля — строки, готовые к подстановке в фикстуру, фабрику или запрос. В них стоит то, что
@@ -162,17 +164,20 @@ $company->person()->lastName;  // 'Успенский'
 $ru->organization(LegalForm::Ip, initials: true)->shortName;  // 'ИП Абрамова А.С.'
 ```
 
-### ФИО
+### Физлицо
 
 ```php
-$ru->person();                // пол случайный
-$ru->person(Gender::Female);  // пол задан
+$ru->person();                            // пол, дата рождения и ИНН случайные
+$ru->person(Gender::Female);              // пол задан
+$ru->person(region: Region::from('77'));  // ИНН выдан Московской инспекцией ФНС
 
-$person->gender;              // 'женский'
-$person->gender()->value;     // 'female'
+$person->gender;                          // 'женский'
+$person->gender()->value;                 // 'female'
+$person->birthDate;                       // '1987-02-12'
+$person->inn;                             // '690847186716'
 ```
 
-Согласованы все три части сразу. Пакет знает и отчества, образованные не по общему правилу,
+Согласованы все три части имени сразу. Пакет знает и отчества, образованные не по общему правилу,
 и фамилии, которые по роду не меняются:
 
 ```php
@@ -181,6 +186,28 @@ $ru->person(Gender::Female)->fullName;  // 'Шевченко Валерия Ил
 
 Книга собственная: 159 имён, 168 отчеств и 134 фамилии — больше восьмисот тысяч сочетаний
 на каждый пол. Сторонние справочники не подключаются.
+
+Дата рождения выдаётся в ISO 8601 — в том виде, в каком её ждут база и JSON, а не в том, как её
+пишут в паспорте. Со скобками возвращается `DateTimeImmutable`.
+
+ИНН физлица — те же двенадцать знаков, что у предпринимателя, и это один и тот же номер: человек
+получает его до регистрации и оставляет себе после.
+
+Генератор всегда выдаёт человека с номером, но в собранном вручную наборе его может не быть —
+человеку, который не вставал на учёт, ИНН не присвоен:
+
+```php
+new Person($gender, 'Иванов', 'Иван', 'Иванович', new DateTimeImmutable('1980-05-17'));  // без ИНН
+```
+
+У предпринимателя такой набор не примут: регистрация ИП без ИНН невозможна.
+
+```php
+$ip = $ru->organization(LegalForm::Ip);
+
+$ip->inn;            // '789510950599'
+$ip->person()->inn;  // '789510950599' — тот же номер
+```
 
 ### Банковские реквизиты
 
@@ -433,7 +460,7 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 | Вызов | Отдаёт |
 |---|---|
 | `organization(?LegalForm, ?Region, ?Gender, bool $initials = false)` | `Result\Organization` |
-| `person(?Gender)` | `Result\Person` |
+| `person(?Gender, ?Region)` | `Result\Person` |
 | `bankAccount(?Bik, ?LegalForm)` | `Result\BankAccount` |
 | `inn(?LegalForm, ?Region)` | `Requisite\Inn` |
 | `ogrn(?LegalForm, ?Region)` | `Requisite\Ogrn` |
@@ -458,6 +485,8 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 | `$bank->settlement` | `string` | `Requisite\Account` |
 | `$person->gender` | `string` | `Enum\Gender` |
 | `$person->fullName`, `lastName`, `firstName`, `patronymic` | `string` | — |
+| `$person->birthDate` | `string` | `DateTimeImmutable` |
+| `$person->inn` | `string\|null` | `Requisite\Inn\|null` |
 
 **Реквизиты.** У всех шести одинаково: `isValid()`, `tryFrom()`, `from()`, свойство `->value`,
 приведение к строке и сериализация в JSON. У `Account` первые три принимают вторым аргументом
@@ -485,7 +514,7 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 | Вызов | Отдаёт |
 |---|---|
 | `ruFaker()->organization(?LegalForm, ?Region, ?Gender, bool $initials = false)` | `array` |
-| `ruFaker()->person(?Gender)` | `array` |
+| `ruFaker()->person(?Gender, ?Region)` | `array` |
 | `ruFaker()->bankAccount(?Bik, ?LegalForm)` | `array` |
 | `ruFaker()->inn(?LegalForm, ?Region)` | `string` |
 | `ruFaker()->ogrn(?LegalForm, ?Region)` | `string` |
@@ -512,6 +541,9 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
   сломала бы воспроизводимость по seed.
 - Генерация берёт код субъекта РФ из 83 значений, а проверка принимает любой код от `01` до `99`:
   перечень кодов — данные, и он правится patch-выпуском.
+- Год рождения выбирается из окна 1946–2008, зафиксированного константами: привязка к текущей
+  дате сломала бы воспроизводимость по seed, как и у года в ОГРН. Рождённый в 2008 совершеннолетний
+  с 2026 года, поэтому окно не требует ежегодного сдвига — со временем оно лишь стареет.
 - ФИО выдаётся в именительном падеже: склонения по падежам в пакете нет.
 
 ## Совместимость

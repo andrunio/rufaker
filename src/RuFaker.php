@@ -81,14 +81,15 @@ final readonly class RuFaker
     }
 
     /**
-     * Builds a full name whose parts agree in gender.
+     * Builds a person: a full name agreeing in gender, a date of birth and a personal INN.
      *
      * @param Gender|null $gender
+     * @param Region|null $region
      * @return Person
      */
-    public function person(?Gender $gender = null): Person
+    public function person(?Gender $gender = null, ?Region $region = null): Person
     {
-        return $this->people->generate($gender);
+        return $this->people->generate($gender, $region);
     }
 
     /**

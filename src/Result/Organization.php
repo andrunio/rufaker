@@ -109,6 +109,14 @@ final readonly class Organization implements Result
             throw InvalidRequisite::because('A business must have a title.');
         }
 
+        if ($person instanceof Person && $person->inn === null) {
+            throw InvalidRequisite::because("$person->fullName carries no INN, and a sole proprietor must.");
+        }
+
+        if ($person instanceof Person && $inn->value !== $person->inn) {
+            throw InvalidRequisite::because("INN $inn->value does not belong to $person->fullName.");
+        }
+
         if ($inn->region()?->value !== $region->value) {
             throw InvalidRequisite::because("INN $inn->value does not belong to region $region->value.");
         }

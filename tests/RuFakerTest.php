@@ -27,6 +27,11 @@ final class RuFakerTest extends TestCase
             RuFaker::seeded(1234)->bankAccount()->toArray(),
             RuFaker::seeded(1234)->bankAccount()->toArray(),
         );
+
+        $this->assertSame(
+            RuFaker::seeded(1234)->person()->toArray(),
+            RuFaker::seeded(1234)->person()->toArray(),
+        );
     }
 
     #[Test]
@@ -67,6 +72,22 @@ final class RuFakerTest extends TestCase
 
         $this->assertNull(
             $organization->kpp,
+        );
+    }
+
+    #[Test]
+    public function it_issues_a_personal_inn_in_the_requested_region(): void
+    {
+        $person = RuFaker::seeded(1234)
+            ->person(Gender::Male, Region::from('66'));
+
+        $this->assertSame(
+            '66',
+            $person->inn()?->region()?->value,
+        );
+
+        $this->assertTrue(
+            $person->inn()->isPersonal(),
         );
     }
 

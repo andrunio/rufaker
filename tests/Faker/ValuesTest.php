@@ -134,6 +134,18 @@ final class ValuesTest extends TestCase
     }
 
     #[Test]
+    public function it_passes_the_region_down_to_a_personal_inn(): void
+    {
+        $inn = (new Values(RuFaker::seeded(1234)))
+            ->person(Gender::Male, Region::from('66'))['inn'];
+
+        $this->assertSame(
+            '66',
+            substr((string)$inn, 0, 2),
+        );
+    }
+
+    #[Test]
     public function it_hands_over_the_same_keys_the_package_does(): void
     {
         $values = new Values();
@@ -158,6 +170,8 @@ final class ValuesTest extends TestCase
                 'last_name',
                 'first_name',
                 'patronymic',
+                'birth_date',
+                'inn',
             ],
             array_keys($values->person()),
         );

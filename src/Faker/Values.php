@@ -65,15 +65,23 @@ final readonly class Values
     }
 
     /**
-     * Builds a full name whose parts agree in gender.
+     * Builds a person: a full name agreeing in gender, a date of birth and a personal INN.
      *
      * @param Gender|null $gender
-     * @return array{gender: string, last_name: string, first_name: string, patronymic: string}
+     * @param Region|null $region
+     * @return array{
+     *     gender: string,
+     *     last_name: string,
+     *     first_name: string,
+     *     patronymic: string,
+     *     birth_date: string,
+     *     inn: string|null,
+     * }
      */
-    public function person(?Gender $gender = null): array
+    public function person(?Gender $gender = null, ?Region $region = null): array
     {
         return $this->ru
-            ->person($gender)
+            ->person($gender, $region)
             ->toArray();
     }
 

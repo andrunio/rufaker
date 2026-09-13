@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace RuFaker\Internal;
 
+use Random\Randomizer;
+
 /**
  * Shared arithmetic over digit strings.
  *
@@ -11,6 +13,21 @@ namespace RuFaker\Internal;
  */
 final class Digits
 {
+    /** Alphabet a random digit sequence is drawn from. */
+    private const string ALPHABET = '0123456789';
+
+    /**
+     * Draws a random digit string of the given length.
+     *
+     * @param Randomizer $randomizer
+     * @param int $length
+     * @return string
+     */
+    public static function random(Randomizer $randomizer, int $length): string
+    {
+        return $randomizer->getBytesFromString(self::ALPHABET, $length);
+    }
+
     /**
      * Tells whether the value is exactly the given number of digits.
      *
