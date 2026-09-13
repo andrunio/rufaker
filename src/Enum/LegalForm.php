@@ -107,6 +107,7 @@ enum LegalForm: string
     /**
      * Earliest year a state registry number of this form can carry, two digits.
      *
+     * @internal
      * @return int
      */
     public function registryNumberFirstYear(): int

@@ -473,9 +473,8 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 | `Region` | — | нет, только диапазон |
 
 **Перечисления.** `Enum\LegalForm` — `Ooo`, `Ao`, `Pao`, `Ip`; умеет `innDigits()`,
-`innChecksumDigits()`, `registryNumberDigits()`, `registryNumberPrefix()`,
-`registryNumberFirstYear()`, `balanceAccount()`, `hasKpp()`, `isIndividual()`, `isCorporate()`,
-`shortTitle()` и `fullTitle()`.
+`innChecksumDigits()`, `registryNumberDigits()`, `registryNumberPrefix()`, `balanceAccount()`,
+`hasKpp()`, `isIndividual()`, `isCorporate()`, `shortTitle()` и `fullTitle()`.
 `Enum\Gender` — `Male`, `Female`; умеет `title()`, `isMale()` и `isFemale()`.
 У обоих штатные `cases()`, `from()`, `tryFrom()` и `->value`.
 
