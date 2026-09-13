@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-13
+
 ### Исправлено
 
 - ОГРНИП выдавался с годом регистрации `02` или `03`, хотя ЕГРИП открыт 01.01.2004. Теперь год
@@ -136,7 +138,8 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/andrunio/rufaker/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/andrunio/rufaker/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/andrunio/rufaker/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/andrunio/rufaker/compare/v0.2.0...v0.3.0
