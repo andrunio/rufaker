@@ -124,3 +124,26 @@ jobs:
       - run: composer validate --strict
 
       - run: vendor/bin/phpstan analyse --no-progress
+
+  # The ruleset requires this job alone: matrix names carry PHP versions and keep changing.
+  gate:
+    name: All checks
+    runs-on: ubuntu-latest
+    needs:
+      - tests
+      - coverage
+      - static
+    if: always()
+    steps:
+      - name: Refuse unless every job above succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+              if [ "$result" != success ]; then
+                  echo "::error::A job did not succeed: $RESULTS"
+                  exit 1
+              fi
+          done
+
+          echo "Every job succeeded: $RESULTS"
