@@ -13,6 +13,8 @@ use Random\Randomizer;
 use RuFaker\Enum\Gender;
 use RuFaker\Internal\Generator\PersonGenerator;
 use RuFaker\Internal\NameBook;
+use RuFaker\Requisite\Inn;
+use RuFaker\Requisite\Region;
 use RuFaker\Result\Person;
 
 #[CoversClass(PersonGenerator::class)]
@@ -21,6 +23,9 @@ final class PersonGeneratorTest extends TestCase
 {
     /** How many names each property is checked over. */
     private const int RUNS = 300;
+
+    /** Personal INN handed to the generator, twelve digits with a valid checksum. */
+    private const string PERSONAL_INN = '500100732259';
 
     #[Test]
     #[DataProvider('genders')]
@@ -90,6 +95,59 @@ final class PersonGeneratorTest extends TestCase
         }
     }
 
+    #[Test]
+    public function it_carries_the_number_it_was_handed(): void
+    {
+        $this->assertSame(
+            self::PERSONAL_INN,
+            $this->generator()->generate(inn: $this->inn())->inn,
+        );
+    }
+
+    #[Test]
+    public function it_issues_a_personal_number_of_the_requested_region(): void
+    {
+        $inn = $this->generator()
+            ->generate(region: Region::from('66'))
+            ->inn;
+
+        $this->assertSame(
+            '66',
+            substr((string)$inn, 0, 2),
+        );
+
+        $this->assertSame(
+            12,
+            strlen((string)$inn),
+        );
+    }
+
+    #[Test]
+    public function it_draws_a_date_of_birth_out_of_a_fixed_range(): void
+    {
+        $generator = $this->generator();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $person = $generator->generate();
+            $year = (int)$person->birthDate()->format('Y');
+
+            $this->assertGreaterThanOrEqual(
+                1946,
+                $year,
+            );
+
+            $this->assertLessThanOrEqual(
+                2008,
+                $year,
+            );
+
+            $this->assertSame(
+                $person->birthDate()->format('Y-m-d'),
+                $person->birthDate,
+            );
+        }
+    }
+
     /**
      * Both genders, keyed by value so a failure names the one that broke.
      *
@@ -101,6 +159,16 @@ final class PersonGeneratorTest extends TestCase
             'male' => [Gender::Male],
             'female' => [Gender::Female],
         ];
+    }
+
+    /**
+     * Builds the personal number every generated person carries here.
+     *
+     * @return Inn
+     */
+    private function inn(): Inn
+    {
+        return Inn::from(self::PERSONAL_INN);
     }
 
     /**

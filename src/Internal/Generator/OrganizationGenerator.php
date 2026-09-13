@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RuFaker\Internal\Generator;
 
 use Random\Randomizer;
+use RuFaker\Internal\Digits;
 use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Internal\TitleBook;
@@ -21,9 +22,6 @@ use RuFaker\Result\Organization;
  */
 final readonly class OrganizationGenerator
 {
-    /** Alphabet a random digit sequence is drawn from. */
-    private const string DIGITS = '0123456789';
-
     /** Latest registration year encoded in a registry number, two digits. */
     private const int LAST_YEAR = 26;
 
@@ -65,14 +63,15 @@ final readonly class OrganizationGenerator
         $form ??= $this->form();
         $region ??= Region::random($this->randomizer);
         $taxOffice = $this->taxOffice();
+        $inn = $this->buildInn($form, $region);
 
         return new Organization(
             $form,
             $region,
-            $this->buildInn($form, $region),
+            $inn,
             $this->buildRegistryNumber($form, $region, $taxOffice),
             $form->hasKpp() ? $this->buildKpp($region, $taxOffice) : null,
-            $form->isIndividual() ? $this->people->generate($gender) : null,
+            $form->isIndividual() ? $this->people->generate($gender, $region, $inn) : null,
             $form->isIndividual() ? null : TitleBook::random($this->randomizer),
             $initials,
         );
@@ -135,7 +134,7 @@ final readonly class OrganizationGenerator
         // The region takes the first two digits, the checksum the last one or two.
         $body = $form->innDigits() - $form->innChecksumDigits();
 
-        return Inn::fromBody($region->value . $this->digits($body - 2));
+        return Inn::fromBody($region->value . Digits::random($this->randomizer, $body - 2));
     }
 
     /**
@@ -156,7 +155,7 @@ final readonly class OrganizationGenerator
             . $this->year($form)
             . $region->value
             . $taxOffice
-            . $this->digits($sequence),
+            . Digits::random($this->randomizer, $sequence),
         );
     }
 
@@ -208,14 +207,4 @@ final readonly class OrganizationGenerator
         );
     }
 
-    /**
-     * Draws a random digit string of the given length.
-     *
-     * @param int $length
-     * @return string
-     */
-    private function digits(int $length): string
-    {
-        return $this->randomizer->getBytesFromString(self::DIGITS, $length);
-    }
 }

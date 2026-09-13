@@ -8,11 +8,28 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 use RuFaker\Internal\Digits;
 
 #[CoversClass(Digits::class)]
 final class DigitsTest extends TestCase
 {
+    #[Test]
+    public function it_draws_a_string_of_digits_of_the_given_length(): void
+    {
+        $drawn = Digits::random(new Randomizer(new Mt19937(1234)), 8);
+
+        $this->assertTrue(
+            Digits::areDigits($drawn, 8),
+        );
+
+        $this->assertSame(
+            $drawn,
+            Digits::random(new Randomizer(new Mt19937(1234)), 8),
+        );
+    }
+
     #[Test]
     public function it_accepts_a_string_of_the_given_length(): void
     {

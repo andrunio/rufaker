@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace RuFaker\Tests\Result;
 
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RuFaker\Enum\Gender;
 use RuFaker\Exception\InvalidRequisite;
+use RuFaker\Requisite\Inn;
 use RuFaker\Result\Person;
 
 #[CoversClass(Person::class)]
 final class PersonTest extends TestCase
 {
+    /** Personal INN of the fixture person, twelve digits with a valid checksum. */
+    private const string PERSONAL_INN = '500100732259';
+
+    /** Date of birth of the fixture person: any past date does. */
+    private const string BIRTH_DATE = '1980-05-17';
+
     #[Test]
     public function it_puts_the_parts_in_the_official_order(): void
     {
@@ -68,6 +76,8 @@ final class PersonTest extends TestCase
                 'last_name' => 'Иванова',
                 'first_name' => 'Мария',
                 'patronymic' => 'Ильинична',
+                'birth_date' => self::BIRTH_DATE,
+                'inn' => self::PERSONAL_INN,
             ],
             $this->ivanova()->toArray(),
         );
@@ -84,7 +94,8 @@ final class PersonTest extends TestCase
         );
 
         $this->assertSame(
-            '{"gender":"женский","last_name":"Иванова","first_name":"Мария","patronymic":"Ильинична"}',
+            '{"gender":"женский","last_name":"Иванова","first_name":"Мария","patronymic":"Ильинична",'
+            . '"birth_date":"1980-05-17","inn":"500100732259"}',
             json_encode($person, JSON_UNESCAPED_UNICODE),
         );
     }
@@ -101,7 +112,14 @@ final class PersonTest extends TestCase
         $this->expectException(InvalidRequisite::class);
         $this->expectExceptionMessage($message);
 
-        new Person(Gender::Male, $lastName, $firstName, $patronymic);
+        new Person(
+            Gender::Male,
+            $lastName,
+            $firstName,
+            $patronymic,
+            new DateTimeImmutable(self::BIRTH_DATE),
+            Inn::from(self::PERSONAL_INN),
+        );
     }
 
     #[Test]
@@ -117,6 +135,94 @@ final class PersonTest extends TestCase
         $this->assertSame(
             'male',
             $person->gender()->value,
+        );
+    }
+
+    #[Test]
+    public function it_hands_out_the_date_of_birth_in_both_forms(): void
+    {
+        $person = $this->ivanov();
+
+        $this->assertSame(
+            '1980-05-17',
+            $person->birthDate,
+        );
+
+        $this->assertSame(
+            '1980-05-17',
+            $person->birthDate()->format('Y-m-d'),
+        );
+    }
+
+    #[Test]
+    public function it_hands_out_the_taxpayer_number_in_both_forms(): void
+    {
+        $person = $this->ivanov();
+
+        $this->assertSame(
+            self::PERSONAL_INN,
+            $person->inn,
+        );
+
+        $this->assertSame(
+            self::PERSONAL_INN,
+            $person->inn()?->value,
+        );
+    }
+
+    #[Test]
+    public function it_accepts_a_person_who_never_got_a_number(): void
+    {
+        $person = new Person(
+            Gender::Male,
+            'Иванов',
+            'Иван',
+            'Иванович',
+            new DateTimeImmutable(self::BIRTH_DATE),
+        );
+
+        $this->assertNull(
+            $person->inn,
+        );
+
+        $this->assertNull(
+            $person->inn(),
+        );
+
+        $this->assertNull(
+            $person->toArray()['inn'],
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_number_issued_to_an_organization(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('INN 7707083893 is not a personal one.');
+
+        new Person(
+            Gender::Male,
+            'Иванов',
+            'Иван',
+            'Иванович',
+            new DateTimeImmutable(self::BIRTH_DATE),
+            Inn::from('7707083893'),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_person_born_tomorrow(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A person cannot be born in the future.');
+
+        new Person(
+            Gender::Male,
+            'Иванов',
+            'Иван',
+            'Иванович',
+            new DateTimeImmutable('+1 day'),
+            Inn::from(self::PERSONAL_INN),
         );
     }
 
@@ -157,7 +263,14 @@ final class PersonTest extends TestCase
      */
     private function ivanov(): Person
     {
-        return new Person(Gender::Male, 'Иванов', 'Иван', 'Иванович');
+        return new Person(
+            Gender::Male,
+            'Иванов',
+            'Иван',
+            'Иванович',
+            new DateTimeImmutable(self::BIRTH_DATE),
+            Inn::from(self::PERSONAL_INN),
+        );
     }
 
     /**
@@ -168,6 +281,13 @@ final class PersonTest extends TestCase
      */
     private function ivanova(): Person
     {
-        return new Person(Gender::Female, 'Иванова', 'Мария', 'Ильинична');
+        return new Person(
+            Gender::Female,
+            'Иванова',
+            'Мария',
+            'Ильинична',
+            new DateTimeImmutable(self::BIRTH_DATE),
+            Inn::from(self::PERSONAL_INN),
+        );
     }
 }

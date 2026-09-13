@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RuFaker\Internal\Generator;
 
 use Random\Randomizer;
+use RuFaker\Internal\Digits;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Account;
@@ -18,9 +19,6 @@ use RuFaker\Result\BankAccount;
  */
 final readonly class BankAccountGenerator
 {
-    /** Alphabet a random digit sequence is drawn from. */
-    private const string DIGITS = '0123456789';
-
     /** Country prefix shared by every participant of the Russian payment system. */
     private const string COUNTRY = '04';
 
@@ -86,7 +84,7 @@ final readonly class BankAccountGenerator
     public function bik(): Bik
     {
         // Territory and Bank of Russia division take two digits each, the participant number three.
-        return Bik::from(self::COUNTRY . $this->digits(4) . $this->participant());
+        return Bik::from(self::COUNTRY . Digits::random($this->randomizer, 4) . $this->participant());
     }
 
     /**
@@ -122,7 +120,7 @@ final readonly class BankAccountGenerator
             . self::ROUBLE
             . self::KEY_PLACEHOLDER
             . self::BANK_DIVISION
-            . $this->digits(7),
+            . Digits::random($this->randomizer, 7),
             $bik,
         );
     }
@@ -163,14 +161,4 @@ final readonly class BankAccountGenerator
         return sprintf('%03d', $this->randomizer->getInt(self::FIRST_PARTICIPANT, 999));
     }
 
-    /**
-     * Draws a random digit string of the given length.
-     *
-     * @param int $length
-     * @return string
-     */
-    private function digits(int $length): string
-    {
-        return $this->randomizer->getBytesFromString(self::DIGITS, $length);
-    }
 }

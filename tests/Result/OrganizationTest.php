@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Tests\Result;
 
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -43,6 +44,12 @@ final class OrganizationTest extends TestCase
 
     /** INN of a person, twelve digits; the same value the INN test set is built on. */
     private const string PERSONAL_INN = '500100732259';
+
+    /** Another personal INN of the same region, completed by the package: the fixture needs two. */
+    private const string OTHER_PERSONAL_INN = '500100000199';
+
+    /** Date of birth of the sole proprietor in the fixtures: any past date does. */
+    private const string BIRTH_DATE = '1980-05-17';
 
     /** Registry number of a sole proprietor, fifteen digits, completed by the package itself. */
     private const string SOLE_PROPRIETOR_OGRN = '304500100000017';
@@ -301,6 +308,46 @@ final class OrganizationTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_a_sole_proprietor_without_a_number_of_their_own(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Иванов Иван Иванович carries no INN, and a sole proprietor must.');
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            null,
+            new Person(
+                Gender::Male,
+                'Иванов',
+                'Иван',
+                'Иванович',
+                new DateTimeImmutable(self::BIRTH_DATE),
+            ),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_sole_proprietor_whose_number_is_not_their_own(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage(
+            'INN ' . self::OTHER_PERSONAL_INN . ' does not belong to Иванов Иван Иванович.',
+        );
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::OTHER_PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            null,
+            $this->entrepreneur(),
+        );
+    }
+
+    #[Test]
     public function it_rejects_an_inn_from_another_region(): void
     {
         $this->expectException(InvalidRequisite::class);
@@ -496,6 +543,13 @@ final class OrganizationTest extends TestCase
      */
     private function entrepreneur(): Person
     {
-        return new Person(Gender::Male, 'Иванов', 'Иван', 'Иванович');
+        return new Person(
+            Gender::Male,
+            'Иванов',
+            'Иван',
+            'Иванович',
+            new DateTimeImmutable(self::BIRTH_DATE),
+            Inn::from(self::PERSONAL_INN),
+        );
     }
 }
