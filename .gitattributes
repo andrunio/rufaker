@@ -5,6 +5,7 @@
 /.github/          export-ignore
 /.gitignore        export-ignore
 /.dockerignore     export-ignore
+/CHANGELOG.md      export-ignore
 /compose.yaml      export-ignore
 /docker/           export-ignore
 /phpstan.neon.dist export-ignore
