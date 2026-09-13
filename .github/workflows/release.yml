@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish the release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - uses: ramsey/composer-install@v4
+
+      # The commit already passed CI; this guards against a tag on the wrong one.
+      - run: vendor/bin/phpunit
+
+      # The script carries over what CHANGELOG.md says and refuses a section left open.
+      - name: Read the release notes out of the changelog
+        run: php .github/release-notes.php "$GITHUB_REF_NAME" > notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
