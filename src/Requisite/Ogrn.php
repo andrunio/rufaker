@@ -21,6 +21,9 @@ final readonly class Ogrn implements Requisite
     /** Divisor of the checksum of a 15-digit OGRNIP. */
     private const int DIVISOR_15 = 13;
 
+    /** Century both registries opened in: the number carries only the last two digits of the year. */
+    private const int CENTURY = 2000;
+
     /**
      * Wraps a registry number, rejecting a broken format or checksum.
      *
@@ -107,6 +110,16 @@ final readonly class Ogrn implements Requisite
         return Region::tryFrom(
             substr($this->value, 3, 2),
         );
+    }
+
+    /**
+     * Reads the year the record was made in the registry.
+     *
+     * @return int
+     */
+    public function year(): int
+    {
+        return self::CENTURY + (int)substr($this->value, 1, 2);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Internal\Generator;
 
+use DateTimeImmutable;
 use Random\Randomizer;
 use RuFaker\Internal\Digits;
 use RuFaker\Enum\Gender;
@@ -14,6 +15,7 @@ use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
 use RuFaker\Requisite\Region;
 use RuFaker\Result\Organization;
+use RuFaker\Result\Person;
 
 /**
  * Builds business requisites that agree with each other.
@@ -22,8 +24,11 @@ use RuFaker\Result\Organization;
  */
 final readonly class OrganizationGenerator
 {
-    /** Latest registration year encoded in a registry number, two digits. */
-    private const int LAST_YEAR = 26;
+    /** Latest day a generated business can be registered on: a constant keeps the seed reproducible. */
+    private const string LAST_DAY = '2026-12-31';
+
+    /** Age a person is drawn to reach before registering as a sole proprietor. */
+    private const string ADULT_AGE = '+18 years';
 
     /** Reason a head office is put on record: the place of its own location. */
     private const string HEAD_OFFICE_REASON = '01';
@@ -64,14 +69,17 @@ final readonly class OrganizationGenerator
         $region ??= Region::random($this->randomizer);
         $taxOffice = $this->taxOffice();
         $inn = $this->buildInn($form, $region);
+        $person = $form->isIndividual() ? $this->people->generate($gender, $region, $inn) : null;
+        $registrationDate = $this->registrationDate($form, $person);
 
         return new Organization(
             $form,
             $region,
             $inn,
-            $this->buildRegistryNumber($form, $region, $taxOffice),
+            $this->buildRegistryNumber($form, $region, $taxOffice, $registrationDate),
+            $registrationDate,
             $form->hasKpp() ? $this->buildKpp($region, $taxOffice) : null,
-            $form->isIndividual() ? $this->people->generate($gender, $region, $inn) : null,
+            $person,
             $form->isIndividual() ? null : TitleBook::random($this->randomizer),
             $initials,
         );
@@ -101,10 +109,13 @@ final readonly class OrganizationGenerator
      */
     public function registryNumber(?LegalForm $form = null, ?Region $region = null): Ogrn
     {
+        $form ??= $this->form();
+
         return $this->buildRegistryNumber(
-            $form ?? $this->form(),
+            $form,
             $region ?? Region::random($this->randomizer),
             $this->taxOffice(),
+            $this->registrationDate($form, null),
         );
     }
 
@@ -138,21 +149,27 @@ final readonly class OrganizationGenerator
     }
 
     /**
-     * Builds a registry number of the given form, region and tax office.
+     * Builds a registry number carrying the year of the given registration date.
      *
      * @param LegalForm $form
      * @param Region $region
      * @param string $taxOffice
+     * @param DateTimeImmutable $registrationDate
      * @return Ogrn
      */
-    private function buildRegistryNumber(LegalForm $form, Region $region, string $taxOffice): Ogrn
+    private function buildRegistryNumber(
+        LegalForm         $form,
+        Region            $region,
+        string            $taxOffice,
+        DateTimeImmutable $registrationDate,
+    ): Ogrn
     {
         // Prefix, year, region and tax office take seven digits, the checksum takes the eighth.
         $sequence = $form->registryNumberDigits() - 8;
 
         return Ogrn::fromBody(
             $form->registryNumberPrefix()
-            . $this->year($form)
+            . $registrationDate->format('y')
             . $region->value
             . $taxOffice
             . Digits::random($this->randomizer, $sequence),
@@ -194,17 +211,29 @@ final readonly class OrganizationGenerator
     }
 
     /**
-     * Picks a registration year no earlier than the day the registry of this form opened.
+     * Draws a registration day no earlier than the registry opened and than the proprietor grew up.
      *
+     * @noinspection PhpDocMissingThrowsInspection
      * @param LegalForm $form
-     * @return string
+     * @param Person|null $person
+     * @return DateTimeImmutable
      */
-    private function year(LegalForm $form): string
+    private function registrationDate(LegalForm $form, ?Person $person): DateTimeImmutable
     {
-        return sprintf(
-            '%02d',
-            $this->randomizer->getInt($form->registryNumberFirstYear(), self::LAST_YEAR),
-        );
+        $first = $form->registryOpenedOn();
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $adult = $person?->birthDate()->modify(self::ADULT_AGE);
+
+        if ($adult instanceof DateTimeImmutable && $adult > $first) {
+            $first = $adult;
+        }
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $days = (int)$first->diff(new DateTimeImmutable(self::LAST_DAY))->days;
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return $first->modify('+' . $this->randomizer->getInt(0, $days) . ' days');
     }
 
 }

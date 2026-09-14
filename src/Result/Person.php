@@ -9,6 +9,7 @@ use Override;
 use RuFaker\Enum\Gender;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\ArrayValue;
+use RuFaker\Internal\IsoDate;
 use RuFaker\Requisite\Inn;
 use Stringable;
 
@@ -18,9 +19,6 @@ use Stringable;
 final readonly class Person implements Result, Stringable
 {
     use ArrayValue;
-
-    /** Format the date of birth is handed out in: the ISO 8601 calendar date. */
-    private const string DATE_FORMAT = 'Y-m-d';
 
     /** Label of the gender every part of the name agrees with. */
     public string $gender;
@@ -89,7 +87,7 @@ final readonly class Person implements Result, Stringable
 
         $this->gender = $gender->title();
         $this->fullName = "$lastName $firstName $patronymic";
-        $this->birthDate = $birthDate->format(self::DATE_FORMAT);
+        $this->birthDate = IsoDate::format($birthDate);
         $this->inn = $inn?->value;
     }
 

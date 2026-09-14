@@ -38,8 +38,8 @@ final class LegalFormTest extends TestCase
         );
 
         $this->assertSame(
-            2,
-            $form->registryNumberFirstYear(),
+            '2002-07-01',
+            $form->registryOpenedOn()->format('Y-m-d'),
         );
 
         $this->assertSame(
@@ -86,8 +86,8 @@ final class LegalFormTest extends TestCase
         );
 
         $this->assertSame(
-            4,
-            $form->registryNumberFirstYear(),
+            '2004-01-01',
+            $form->registryOpenedOn()->format('Y-m-d'),
         );
 
         $this->assertSame(

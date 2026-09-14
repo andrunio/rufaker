@@ -86,6 +86,7 @@ final readonly class PersonGenerator
     /**
      * Draws a date of birth of a person old enough to sign for themselves.
      *
+     * @noinspection PhpDocMissingThrowsInspection
      * @return DateTimeImmutable
      */
     private function birthDate(): DateTimeImmutable
@@ -94,9 +95,11 @@ final readonly class PersonGenerator
         $month = $this->randomizer->getInt(1, 12);
 
         // The last day differs between months, and February differs between years.
+        /** @noinspection PhpUnhandledExceptionInspection */
         $days = (int)(new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month)))->format('t');
 
         // Every part comes from getInt() within known bounds, so the date is valid by construction.
+        /** @noinspection PhpUnhandledExceptionInspection */
         return new DateTimeImmutable(
             sprintf('%04d-%02d-%02d', $year, $month, $this->randomizer->getInt(1, $days)),
         );

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace RuFaker\Result;
 
+use DateTimeImmutable;
 use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\ArrayValue;
+use RuFaker\Internal\IsoDate;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
@@ -40,6 +42,9 @@ final readonly class Organization implements Result
     /** Tax registration reason code; a sole proprietor has none. */
     public ?string $kpp;
 
+    /** Day the record was made in the registry, in ISO 8601. */
+    public string $registrationDate;
+
     /** Legal form as the enum case it came from. */
     private LegalForm $formType;
 
@@ -55,6 +60,9 @@ final readonly class Organization implements Result
     /** Tax registration reason code as the requisite it came from. */
     private ?Kpp $kppType;
 
+    /** Registration date as the object it came from. */
+    private DateTimeImmutable $registrationDateType;
+
     /** Full name of the sole proprietor; a legal entity has none. */
     private ?Person $personType;
 
@@ -65,6 +73,7 @@ final readonly class Organization implements Result
      * @param Region $region
      * @param Inn $inn
      * @param Ogrn $ogrn
+     * @param DateTimeImmutable $registrationDate
      * @param Kpp|null $kpp
      * @param Person|null $person
      * @param string|null $title
@@ -72,14 +81,15 @@ final readonly class Organization implements Result
      * @throws InvalidRequisite
      */
     public function __construct(
-        LegalForm $form,
-        Region    $region,
-        Inn       $inn,
-        Ogrn      $ogrn,
-        ?Kpp      $kpp = null,
-        ?Person   $person = null,
-        ?string   $title = null,
-        bool      $initials = false,
+        LegalForm         $form,
+        Region            $region,
+        Inn               $inn,
+        Ogrn              $ogrn,
+        DateTimeImmutable $registrationDate,
+        ?Kpp              $kpp = null,
+        ?Person           $person = null,
+        ?string           $title = null,
+        bool              $initials = false,
     )
     {
         $innDigits = $form->innDigits();
@@ -129,11 +139,28 @@ final readonly class Organization implements Result
             throw InvalidRequisite::because("KPP $kpp->value does not belong to region $region->value.");
         }
 
+        $registered = IsoDate::format($registrationDate);
+
+        if ($registrationDate < $form->registryOpenedOn()) {
+            $opened = IsoDate::format($form->registryOpenedOn());
+
+            throw InvalidRequisite::because("The registry of $form->value opened on $opened, after $registered.");
+        }
+
+        if ($ogrn->year() !== (int)$registrationDate->format('Y')) {
+            throw InvalidRequisite::because("Registry number $ogrn->value does not carry the year of $registered.");
+        }
+
+        if ($person instanceof Person && $registrationDate < $person->birthDate()) {
+            throw InvalidRequisite::because("$person->fullName was born after $registered.");
+        }
+
         $this->formType = $form;
         $this->regionType = $region;
         $this->innType = $inn;
         $this->ogrnType = $ogrn;
         $this->kppType = $kpp;
+        $this->registrationDateType = $registrationDate;
         $this->personType = $person;
 
         $this->form = $form->shortTitle();
@@ -143,6 +170,7 @@ final readonly class Organization implements Result
         $this->inn = $inn->value;
         $this->ogrn = $ogrn->value;
         $this->kpp = $kpp?->value;
+        $this->registrationDate = $registered;
     }
 
     /**
@@ -193,6 +221,16 @@ final readonly class Organization implements Result
     public function kpp(): ?Kpp
     {
         return $this->kppType;
+    }
+
+    /**
+     * Returns the registration date as the object it came from.
+     *
+     * @return DateTimeImmutable
+     */
+    public function registrationDate(): DateTimeImmutable
+    {
+        return $this->registrationDateType;
     }
 
     /**
@@ -285,6 +323,7 @@ final readonly class Organization implements Result
      *     inn: string,
      *     ogrn: string,
      *     kpp: string|null,
+     *     registration_date: string,
      *     person: string|null,
      * }
      */
@@ -298,6 +337,7 @@ final readonly class Organization implements Result
             'inn' => $this->inn,
             'ogrn' => $this->ogrn,
             'kpp' => $this->kpp,
+            'registration_date' => $this->registrationDate,
             'person' => $this->personType?->fullName,
         ];
     }

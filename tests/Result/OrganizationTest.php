@@ -54,6 +54,12 @@ final class OrganizationTest extends TestCase
     /** Registry number of a sole proprietor, fifteen digits, completed by the package itself. */
     private const string SOLE_PROPRIETOR_OGRN = '304500100000017';
 
+    /** Day a legal entity in the fixtures was registered: any day of the year its number carries. */
+    private const string ENTITY_REGISTERED = '2002-12-02';
+
+    /** Day the sole proprietor in the fixtures was registered: the year again comes from the number. */
+    private const string PROPRIETOR_REGISTERED = '2004-03-15';
+
     /** INN of a legal entity from another region, completed by the package itself. */
     private const string PETERSBURG_INN = '7800000010';
 
@@ -112,6 +118,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             null,
             $this->entrepreneur(),
         );
@@ -128,6 +135,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
         );
     }
@@ -143,6 +151,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
         );
     }
 
@@ -157,6 +166,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             $this->entrepreneur(),
         );
@@ -173,6 +183,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
         );
     }
 
@@ -187,6 +198,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             $this->entrepreneur(),
         );
@@ -232,6 +244,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             null,
             $this->entrepreneur(),
             null,
@@ -260,6 +273,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
         );
     }
@@ -275,6 +289,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             null,
             $this->entrepreneur(),
             self::SBERBANK_TITLE,
@@ -292,6 +307,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             null,
             '   ',
@@ -318,13 +334,14 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             null,
             new Person(
                 Gender::Male,
                 'Иванов',
                 'Иван',
                 'Иванович',
-                new DateTimeImmutable(self::BIRTH_DATE),
+                $this->date(self::BIRTH_DATE),
             ),
         );
     }
@@ -342,6 +359,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::OTHER_PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             null,
             $this->entrepreneur(),
         );
@@ -358,6 +376,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::PETERSBURG),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::PETERSBURG_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
@@ -375,6 +394,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::PETERSBURG),
             Inn::from(self::PETERSBURG_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
@@ -392,9 +412,63 @@ final class OrganizationTest extends TestCase
             Region::from(self::PETERSBURG),
             Inn::from(self::PETERSBURG_INN),
             Ogrn::from(self::PETERSBURG_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_date_earlier_than_the_registry_itself(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('The registry of pao opened on 2002-07-01, after 2002-01-15.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            $this->date('2002-01-15'),
+            Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_registry_number_carrying_another_year(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Registry number 1027700132195 does not carry the year of 2019-04-08.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            $this->date('2019-04-08'),
+            Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_sole_proprietor_registered_before_they_were_born(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Иванов Иван Иванович was born after 2004-03-15.');
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
+            null,
+            $this->newborn(),
         );
     }
 
@@ -410,6 +484,7 @@ final class OrganizationTest extends TestCase
                 'inn' => self::SBERBANK_INN,
                 'ogrn' => self::SBERBANK_OGRN,
                 'kpp' => self::SBERBANK_KPP,
+                'registration_date' => self::ENTITY_REGISTERED,
                 'person' => null,
             ],
             $this->sberbank()->toArray(),
@@ -437,7 +512,8 @@ final class OrganizationTest extends TestCase
         $this->assertSame(
             '{"form":"ПАО","short_name":"ПАО \"Сбербанк России\"",'
             . '"full_name":"Публичное акционерное общество \"Сбербанк России\"",'
-            . '"region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001","person":null}',
+            . '"region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
+            . '"registration_date":"2002-12-02","person":null}',
             json_encode($organization, JSON_UNESCAPED_UNICODE),
         );
     }
@@ -511,6 +587,7 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW),
             Inn::from(self::SBERBANK_INN),
             Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
@@ -530,8 +607,40 @@ final class OrganizationTest extends TestCase
             Region::from(self::MOSCOW_OBLAST),
             Inn::from(self::PERSONAL_INN),
             Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
             null,
             $this->entrepreneur(),
+        );
+    }
+
+    /**
+     * Wraps a calendar date written in the fixtures above.
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @param string $value
+     * @return DateTimeImmutable
+     */
+    private function date(string $value): DateTimeImmutable
+    {
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return new DateTimeImmutable($value);
+    }
+
+    /**
+     * Builds a proprietor born after the registration date of the fixtures.
+     *
+     * @return Person
+     * @throws InvalidRequisite
+     */
+    private function newborn(): Person
+    {
+        return new Person(
+            Gender::Male,
+            'Иванов',
+            'Иван',
+            'Иванович',
+            $this->date('2005-06-01'),
+            Inn::from(self::PERSONAL_INN),
         );
     }
 
@@ -548,7 +657,7 @@ final class OrganizationTest extends TestCase
             'Иванов',
             'Иван',
             'Иванович',
-            new DateTimeImmutable(self::BIRTH_DATE),
+            $this->date(self::BIRTH_DATE),
             Inn::from(self::PERSONAL_INN),
         );
     }
