@@ -59,6 +59,7 @@ enum LegalForm: string
     /**
      * Number of digits in the INN of this form.
      *
+     * @internal
      * @return int
      */
     public function innDigits(): int
@@ -71,6 +72,7 @@ enum LegalForm: string
     /**
      * Number of checksum digits at the end of the INN of this form.
      *
+     * @internal
      * @return int
      */
     public function innChecksumDigits(): int
@@ -83,6 +85,7 @@ enum LegalForm: string
     /**
      * Number of digits in the state registry number of this form.
      *
+     * @internal
      * @return int
      */
     public function registryNumberDigits(): int
@@ -95,6 +98,7 @@ enum LegalForm: string
     /**
      * Leading digit of the state registry number of this form.
      *
+     * @internal
      * @return string
      */
     public function registryNumberPrefix(): string
