@@ -17,6 +17,9 @@ final class OgrnTest extends TestCase
     /** Registry number of a sole proprietor, completed by the package: no value from real life is at hand yet. */
     private const string SOLE_PROPRIETOR = '304500100000017';
 
+    /** Registry number of a record made in 2015, completed by the package: real numbers at hand all date to 2002. */
+    private const string LATER_RECORD = '1157746123457';
+
     #[Test]
     #[DataProvider('realNumbers')]
     public function it_accepts_a_real_registry_number(string $value): void
@@ -94,6 +97,25 @@ final class OgrnTest extends TestCase
 
         $this->assertTrue(
             Ogrn::from(self::SOLE_PROPRIETOR)->isIndividual(),
+        );
+    }
+
+    #[Test]
+    public function it_reads_the_year_the_record_was_made(): void
+    {
+        $this->assertSame(
+            2002,
+            Ogrn::from('1027700132195')->year(),
+        );
+
+        $this->assertSame(
+            2015,
+            Ogrn::from(self::LATER_RECORD)->year(),
+        );
+
+        $this->assertSame(
+            2004,
+            Ogrn::from(self::SOLE_PROPRIETOR)->year(),
         );
     }
 
