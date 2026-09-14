@@ -159,6 +159,7 @@ final class ValuesTest extends TestCase
                 'inn',
                 'ogrn',
                 'kpp',
+                'registration_date',
                 'person',
             ],
             array_keys($values->organization()),

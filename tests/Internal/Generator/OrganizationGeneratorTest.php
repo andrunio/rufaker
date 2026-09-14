@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Tests\Internal\Generator;
 
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,6 +19,7 @@ use RuFaker\Requisite\Kpp;
 use RuFaker\Requisite\Ogrn;
 use RuFaker\Requisite\Region;
 use RuFaker\Result\Organization;
+use RuFaker\Result\Person;
 
 #[CoversClass(OrganizationGenerator::class)]
 #[CoversClass(Organization::class)]
@@ -28,6 +30,9 @@ final class OrganizationGeneratorTest extends TestCase
 
     /** Latest registration year the generator may encode, mirroring its own constant. */
     private const int LAST_YEAR = 26;
+
+    /** Latest day the generator may register a business on, mirroring its own constant. */
+    private const string LAST_DAY = '2026-12-31';
 
     #[Test]
     public function it_generates_requisites_that_pass_their_own_validation(): void
@@ -142,6 +147,64 @@ final class OrganizationGeneratorTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('forms')]
+    public function it_dates_the_registration_within_the_life_of_the_registry(LegalForm $form): void
+    {
+        $generator = $this->generator();
+        $opened = $form->registryOpenedOn();
+        $last = $this->lastDay();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $registered = $generator->generate($form)->registrationDate();
+
+            $this->assertGreaterThanOrEqual(
+                $opened,
+                $registered,
+            );
+
+            $this->assertLessThanOrEqual(
+                $last,
+                $registered,
+            );
+        }
+    }
+
+    #[Test]
+    #[DataProvider('forms')]
+    public function it_carries_the_year_of_the_registration_inside_the_number(LegalForm $form): void
+    {
+        $generator = $this->generator();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $organization = $generator->generate($form);
+
+            $this->assertSame(
+                (int)$organization->registrationDate()->format('Y'),
+                $organization->ogrn()->year(),
+            );
+        }
+    }
+
+    #[Test]
+    public function it_registers_a_sole_proprietor_no_earlier_than_they_came_of_age(): void
+    {
+        $generator = $this->generator();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $organization = $generator->generate(LegalForm::Ip);
+
+            $person = $organization->person();
+
+            $this->assertInstanceOf(Person::class, $person);
+
+            $this->assertGreaterThanOrEqual(
+                $this->cameOfAge($person),
+                $organization->registrationDate(),
+            );
+        }
+    }
+
+    #[Test]
     public function it_honours_a_requested_region(): void
     {
         $organization = $this->generator()->generate(LegalForm::Ooo, Region::from('77'));
@@ -226,6 +289,31 @@ final class OrganizationGeneratorTest extends TestCase
             'public joint-stock company' => [LegalForm::Pao, 2],
             'sole proprietor' => [LegalForm::Ip, 4],
         ];
+    }
+
+    /**
+     * Wraps the latest day the generator may register a business on.
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @return DateTimeImmutable
+     */
+    private function lastDay(): DateTimeImmutable
+    {
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return new DateTimeImmutable(self::LAST_DAY);
+    }
+
+    /**
+     * Returns the day the person turned eighteen, the earliest they may register as a proprietor.
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @param Person $person
+     * @return DateTimeImmutable
+     */
+    private function cameOfAge(Person $person): DateTimeImmutable
+    {
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return $person->birthDate()->modify('+18 years');
     }
 
     /**

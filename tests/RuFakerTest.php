@@ -184,6 +184,7 @@ final class RuFakerTest extends TestCase
                 'inn',
                 'ogrn',
                 'kpp',
+                'registration_date',
                 'person',
             ],
             array_keys($organization->toArray()),

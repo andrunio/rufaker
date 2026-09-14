@@ -117,7 +117,7 @@ final class PersonTest extends TestCase
             $lastName,
             $firstName,
             $patronymic,
-            new DateTimeImmutable(self::BIRTH_DATE),
+            $this->date(self::BIRTH_DATE),
             Inn::from(self::PERSONAL_INN),
         );
     }
@@ -178,7 +178,7 @@ final class PersonTest extends TestCase
             'Иванов',
             'Иван',
             'Иванович',
-            new DateTimeImmutable(self::BIRTH_DATE),
+            $this->date(self::BIRTH_DATE),
         );
 
         $this->assertNull(
@@ -205,7 +205,7 @@ final class PersonTest extends TestCase
             'Иванов',
             'Иван',
             'Иванович',
-            new DateTimeImmutable(self::BIRTH_DATE),
+            $this->date(self::BIRTH_DATE),
             Inn::from('7707083893'),
         );
     }
@@ -221,7 +221,7 @@ final class PersonTest extends TestCase
             'Иванов',
             'Иван',
             'Иванович',
-            new DateTimeImmutable('+1 day'),
+            $this->date('+1 day'),
             Inn::from(self::PERSONAL_INN),
         );
     }
@@ -256,6 +256,19 @@ final class PersonTest extends TestCase
     }
 
     /**
+     * Wraps a calendar date written in the fixtures above.
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @param string $value
+     * @return DateTimeImmutable
+     */
+    private function date(string $value): DateTimeImmutable
+    {
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return new DateTimeImmutable($value);
+    }
+
+    /**
      * Builds a male full name whose parts agree with each other.
      *
      * @return Person
@@ -268,7 +281,7 @@ final class PersonTest extends TestCase
             'Иванов',
             'Иван',
             'Иванович',
-            new DateTimeImmutable(self::BIRTH_DATE),
+            $this->date(self::BIRTH_DATE),
             Inn::from(self::PERSONAL_INN),
         );
     }
@@ -286,7 +299,7 @@ final class PersonTest extends TestCase
             'Иванова',
             'Мария',
             'Ильинична',
-            new DateTimeImmutable(self::BIRTH_DATE),
+            $this->date(self::BIRTH_DATE),
             Inn::from(self::PERSONAL_INN),
         );
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace RuFaker\Enum;
 
+use DateTimeImmutable;
+
 /**
  * Legal form of a business, the source of every structural rule about its requisites.
  */
@@ -20,11 +22,11 @@ enum LegalForm: string
     /** Sole proprietor under first-order account 408 of Bank of Russia Regulation 809-P. */
     private const string SoleProprietor = '40802';
 
-    /** Year the register of legal entities opened under Federal Law 129-FZ, 1 July 2002. */
-    private const int CompanyRegistryOpened = 2;
+    /** Day the register of legal entities opened under Federal Law 129-FZ. */
+    private const string CompanyRegistryOpened = '2002-07-01';
 
-    /** Year the register of sole proprietors opened under Federal Law 76-FZ, 1 January 2004. */
-    private const int ProprietorRegistryOpened = 4;
+    /** Day the register of sole proprietors opened under Federal Law 76-FZ. */
+    private const string ProprietorRegistryOpened = '2004-01-01';
 
     /**
      * Returns the short label of this form, the one that opens an abbreviated name.
@@ -109,16 +111,19 @@ enum LegalForm: string
     }
 
     /**
-     * Earliest year a state registry number of this form can carry, two digits.
+     * Day the registry of this form opened: no record in it can be dated earlier.
      *
+     * @noinspection PhpDocMissingThrowsInspection
      * @internal
-     * @return int
+     * @return DateTimeImmutable
      */
-    public function registryNumberFirstYear(): int
+    public function registryOpenedOn(): DateTimeImmutable
     {
-        return $this->isIndividual()
+        // Both constants are written here, so the date is valid by construction.
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return new DateTimeImmutable($this->isIndividual()
             ? self::ProprietorRegistryOpened
-            : self::CompanyRegistryOpened;
+            : self::CompanyRegistryOpened);
     }
 
     /**
