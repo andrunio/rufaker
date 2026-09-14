@@ -67,17 +67,6 @@ final readonly class Region implements Requisite
     }
 
     /**
-     * Lists the codes used for generation; every code of the 01-99 range is still accepted.
-     *
-     * @internal
-     * @return list<string>
-     */
-    public static function pool(): array
-    {
-        return self::POOL;
-    }
-
-    /**
      * Picks a region out of the generation pool.
      *
      * @internal

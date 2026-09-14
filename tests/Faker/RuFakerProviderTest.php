@@ -38,8 +38,7 @@ final class RuFakerProviderTest extends TestCase
             $methods,
         );
 
-        // Every public method becomes a formatter, and a clash is resolved silently in favour of
-        // the provider added last. One name is one chance of that.
+        // One name is one chance of a silent clash: every public method becomes a formatter.
         $this->assertSame(
             ['__construct', 'ruFaker'],
             $names,
