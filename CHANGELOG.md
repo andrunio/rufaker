@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-14
+
 ### Добавлено
 
 - `Ogrn::year()` — год записи в реестре четырьмя цифрами: у `1027700132195` это `2002`. Номер
@@ -188,7 +190,8 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/andrunio/rufaker/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/andrunio/rufaker/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/andrunio/rufaker/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/andrunio/rufaker/compare/v0.4.0...v0.4.1
