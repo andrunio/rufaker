@@ -7,6 +7,7 @@ namespace RuFaker\Internal\Generator;
 use DateTimeImmutable;
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
+use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Digits;
 use RuFaker\Internal\NameBook;
 use RuFaker\Requisite\Inn;
@@ -20,11 +21,11 @@ use RuFaker\Result\Person;
  */
 final readonly class PersonGenerator
 {
-    /** Earliest year of birth a generator draws, the oldest person it builds. */
-    private const int FIRST_YEAR = 1946;
+    /** Age of the oldest person a generator builds: birth starts with the opening of that year. */
+    private const int OLDEST_AGE = 80;
 
-    /** Latest year of birth: anyone born by then has been an adult since 2026. */
-    private const int LAST_YEAR = 2008;
+    /** Age of the youngest: a year past adulthood, so eighteen came no later than last year ended. */
+    private const int YOUNGEST_AGE = 19;
 
     /** Digits a personal INN carries beyond the region code and the two checksum ones. */
     private const int INN_BODY_DIGITS = 8;
@@ -86,22 +87,14 @@ final readonly class PersonGenerator
     /**
      * Draws a date of birth of a person old enough to sign for themselves.
      *
-     * @noinspection PhpDocMissingThrowsInspection
      * @return DateTimeImmutable
      */
     private function birthDate(): DateTimeImmutable
     {
-        $year = $this->randomizer->getInt(self::FIRST_YEAR, self::LAST_YEAR);
-        $month = $this->randomizer->getInt(1, 12);
-
-        // The last day differs between months, and February differs between years.
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $days = (int)(new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month)))->format('t');
-
-        // Every part comes from getInt() within known bounds, so the date is valid by construction.
-        /** @noinspection PhpUnhandledExceptionInspection */
-        return new DateTimeImmutable(
-            sprintf('%04d-%02d-%02d', $year, $month, $this->randomizer->getInt(1, $days)),
+        return Calendar::dayWithin(
+            $this->randomizer,
+            Calendar::yearOpens(self::OLDEST_AGE),
+            Calendar::yearCloses(self::YOUNGEST_AGE),
         );
     }
 

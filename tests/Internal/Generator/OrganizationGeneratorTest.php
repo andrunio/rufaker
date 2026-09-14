@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 use RuFaker\Enum\LegalForm;
+use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Generator\OrganizationGenerator;
 use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Inn;
@@ -28,11 +29,8 @@ final class OrganizationGeneratorTest extends TestCase
     /** How many sets each property is checked over. */
     private const int RUNS = 300;
 
-    /** Latest registration year the generator may encode, mirroring its own constant. */
-    private const int LAST_YEAR = 26;
-
-    /** Latest day the generator may register a business on, mirroring its own constant. */
-    private const string LAST_DAY = '2026-12-31';
+    /** Years back the window of a registration closes, mirroring the constant of the generator. */
+    private const int LAST_YEAR = 1;
 
     #[Test]
     public function it_generates_requisites_that_pass_their_own_validation(): void
@@ -140,8 +138,9 @@ final class OrganizationGeneratorTest extends TestCase
             min($years),
         );
 
+        // The window closes with last year, so the newest number a generator writes carries it.
         $this->assertSame(
-            self::LAST_YEAR,
+            (int)Calendar::yearCloses(self::LAST_YEAR)->format('y'),
             max($years),
         );
     }
@@ -152,7 +151,7 @@ final class OrganizationGeneratorTest extends TestCase
     {
         $generator = $this->generator();
         $opened = $form->registryOpenedOn();
-        $last = $this->lastDay();
+        $last = Calendar::yearCloses(self::LAST_YEAR);
 
         foreach (range(1, self::RUNS) as $ignored) {
             $registered = $generator->generate($form)->registrationDate();
@@ -289,18 +288,6 @@ final class OrganizationGeneratorTest extends TestCase
             'public joint-stock company' => [LegalForm::Pao, 2],
             'sole proprietor' => [LegalForm::Ip, 4],
         ];
-    }
-
-    /**
-     * Wraps the latest day the generator may register a business on.
-     *
-     * @noinspection PhpDocMissingThrowsInspection
-     * @return DateTimeImmutable
-     */
-    private function lastDay(): DateTimeImmutable
-    {
-        /** @noinspection PhpUnhandledExceptionInspection */
-        return new DateTimeImmutable(self::LAST_DAY);
     }
 
     /**
