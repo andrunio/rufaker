@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
+use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Generator\PersonGenerator;
 use RuFaker\Internal\NameBook;
 use RuFaker\Requisite\Inn;
@@ -23,6 +24,15 @@ final class PersonGeneratorTest extends TestCase
 {
     /** How many names each property is checked over. */
     private const int RUNS = 300;
+
+    /** Age of the oldest person the generator builds, mirroring its own constant. */
+    private const int OLDEST_AGE = 80;
+
+    /** Age of the youngest, mirroring the constant that keeps everyone past adulthood. */
+    private const int YOUNGEST_AGE = 19;
+
+    /** Age of majority under article 21 of the Civil Code. */
+    private const int ADULT_AGE = 18;
 
     /** Personal INN handed to the generator, twelve digits with a valid checksum. */
     private const string PERSONAL_INN = '500100732259';
@@ -123,27 +133,45 @@ final class PersonGeneratorTest extends TestCase
     }
 
     #[Test]
-    public function it_draws_a_date_of_birth_out_of_a_fixed_range(): void
+    public function it_draws_a_date_of_birth_of_a_grown_up_person(): void
     {
         $generator = $this->generator();
+        $oldest = Calendar::yearOpens(self::OLDEST_AGE);
+        $youngest = Calendar::yearCloses(self::YOUNGEST_AGE);
 
         foreach (range(1, self::RUNS) as $ignored) {
             $person = $generator->generate();
-            $year = (int)$person->birthDate()->format('Y');
+            $birth = $person->birthDate();
 
             $this->assertGreaterThanOrEqual(
-                1946,
-                $year,
+                $oldest,
+                $birth,
             );
 
             $this->assertLessThanOrEqual(
-                2008,
-                $year,
+                $youngest,
+                $birth,
             );
 
             $this->assertSame(
-                $person->birthDate()->format('Y-m-d'),
+                $birth->format('Y-m-d'),
                 $person->birthDate,
+            );
+        }
+    }
+
+    #[Test]
+    public function it_draws_nobody_younger_than_the_age_of_majority(): void
+    {
+        $generator = $this->generator();
+        $today = Calendar::yearCloses(0)->setDate((int)Calendar::yearCloses(0)->format('Y'), 1, 1);
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $age = $generator->generate()->birthDate()->diff($today)->y;
+
+            $this->assertGreaterThanOrEqual(
+                self::ADULT_AGE,
+                $age,
             );
         }
     }

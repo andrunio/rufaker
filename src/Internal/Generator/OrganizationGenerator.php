@@ -6,6 +6,7 @@ namespace RuFaker\Internal\Generator;
 
 use DateTimeImmutable;
 use Random\Randomizer;
+use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Digits;
 use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
@@ -24,10 +25,10 @@ use RuFaker\Result\Person;
  */
 final readonly class OrganizationGenerator
 {
-    /** Latest day a generated business can be registered on: a constant keeps the seed reproducible. */
-    private const string LAST_DAY = '2026-12-31';
+    /** Registration stops at the end of last year: a day of this one could still lie ahead. */
+    private const int LAST_YEAR = 1;
 
-    /** Age a person is drawn to reach before registering as a sole proprietor. */
+    /** Age a person is drawn to reach before registering as a sole proprietor, article 21 of the Civil Code. */
     private const string ADULT_AGE = '+18 years';
 
     /** Reason a head office is put on record: the place of its own location. */
@@ -222,18 +223,12 @@ final readonly class OrganizationGenerator
     {
         $first = $form->registryOpenedOn();
 
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $adult = $person?->birthDate()->modify(self::ADULT_AGE);
-
-        if ($adult instanceof DateTimeImmutable && $adult > $first) {
-            $first = $adult;
+        if ($person instanceof Person) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $first = max($first, $person->birthDate()->modify(self::ADULT_AGE));
         }
 
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $days = (int)$first->diff(new DateTimeImmutable(self::LAST_DAY))->days;
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        return $first->modify('+' . $this->randomizer->getInt(0, $days) . ' days');
+        return Calendar::dayWithin($this->randomizer, $first, Calendar::yearCloses(self::LAST_YEAR));
     }
 
 }
