@@ -14,8 +14,8 @@ final readonly class Bik implements Requisite
 {
     use StringValue;
 
-    /** Every participant of the Russian payment system carries the 04 country prefix. */
-    private const string PATTERN = '/^04\d{7}$/';
+    /** The leading digit tells the kind of participation: direct, indirect or a client of the Bank of Russia. */
+    private const string PATTERN = '/^[012]\d{8}$/';
 
     /**
      * Wraps a BIK, rejecting a broken format.

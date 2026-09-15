@@ -30,8 +30,8 @@ final class AccountTest extends TestCase
     /** Another bank of division 25: only the participant number tells it from Sberbank. */
     private const string SAME_DIVISION_BIK = '044525999';
 
-    /** First three digits of a correspondent account, the group held at the Bank of Russia. */
-    private const int CLASSIFYING_DIGITS = 3;
+    /** Balance account, the five digits that pick which bank code the key is computed over. */
+    private const int CLASSIFYING_DIGITS = 5;
 
     #[Test]
     #[DataProvider('realAccounts')]
@@ -39,6 +39,33 @@ final class AccountTest extends TestCase
     {
         $this->assertTrue(
             Account::isValid($account, Bik::from($bik)),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('realCustomerAccounts')]
+    public function it_accepts_a_real_customer_account(string $account, string $bik): void
+    {
+        $this->assertTrue(
+            Account::isValid($account, Bik::from($bik)),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('realTreasuryAccounts')]
+    public function it_accepts_a_real_account_held_at_the_treasury(string $account, string $bik): void
+    {
+        $this->assertTrue(
+            Account::isValid($account, Bik::from($bik)),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('malformedAccounts')]
+    public function it_rejects_a_value_that_is_not_twenty_digits(string $value): void
+    {
+        $this->assertFalse(
+            Account::isValid($value, Bik::from(self::MOSCOW_BIK)),
         );
     }
 
@@ -65,13 +92,13 @@ final class AccountTest extends TestCase
         $bik = Bik::from(self::MOSCOW_BIK);
         $account = Account::fromDraft('40702810000000000001', $bik)->value;
 
-        $this->assertBrokenByEveryChange($account, $bik, 0);
+        $this->assertBrokenByEveryChange($account, $bik, self::CLASSIFYING_DIGITS);
     }
 
     #[Test]
     public function it_rejects_every_single_digit_change_below_the_account_group(): void
     {
-        // The first three digits pick the keying rule, so changing them moves the account group.
+        // Changing the balance account moves the number to another group, keyed by another rule.
         $this->assertBrokenByEveryChange(
             self::MOSCOW_CORRESPONDENT,
             Bik::from(self::MOSCOW_BIK),
@@ -161,6 +188,71 @@ final class AccountTest extends TestCase
             'Sberbank, North-West' => [
                 self::NORTHWEST_CORRESPONDENT,
                 self::NORTHWEST_BIK,
+            ],
+            'Alfa-Bank, Moscow' => [
+                '30101810200000000593',
+                '044525593',
+            ],
+        ];
+    }
+
+    /**
+     * Values that break the account format.
+     *
+     * @return array<string, array{string}>
+     */
+    public static function malformedAccounts(): array
+    {
+        return [
+            'empty' => [''],
+            'nineteen digits' => ['3010181040000000022'],
+            'twenty-one digits' => ['301018104000000002251'],
+            'letters' => ['3010181040000000022a'],
+        ];
+    }
+
+    /**
+     * Accounts organizations hold at their banks, published by the organizations themselves.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function realCustomerAccounts(): array
+    {
+        return [
+            'a company at Sberbank' => [
+                '40702810738060051258',
+                self::MOSCOW_BIK,
+            ],
+            'the same company at Alfa-Bank' => [
+                '40702810101300049173',
+                '044525593',
+            ],
+            'a foundation at Sberbank' => [
+                '40703810438040104602',
+                self::MOSCOW_BIK,
+            ],
+        ];
+    }
+
+    /**
+     * Accounts held at a Bank of Russia division, taken from the tax payment details and the BIK directory.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function realTreasuryAccounts(): array
+    {
+        return [
+            'single treasury account of the Tula region' => [
+                '40102810445370000059',
+                '017003983',
+            ],
+            'treasury account the tax payments go to' => [
+                '03100643000000018500',
+                '017003983',
+            ],
+            'a university served by the federal treasury' => [
+                '40501810150042006001',
+                '048142001',
             ],
         ];
     }
