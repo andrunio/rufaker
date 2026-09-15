@@ -1,7 +1,7 @@
 # RuFaker
 
 [![Tests](https://github.com/andrunio/rufaker/actions/workflows/ci.yml/badge.svg)](https://github.com/andrunio/rufaker/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/andrunio/rufaker/badges/coverage.json)](https://github.com/andrunio/rufaker/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/andrunio/rufaker/graph/badge.svg)](https://codecov.io/gh/andrunio/rufaker)
 [![Packagist](https://img.shields.io/packagist/v/rufaker/rufaker)](https://packagist.org/packages/rufaker/rufaker)
 [![PHP](https://img.shields.io/packagist/dependency-v/rufaker/rufaker/php)](https://packagist.org/packages/rufaker/rufaker)
 
@@ -596,3 +596,7 @@ composer test:83   # то же самое для test:84 и test:85
 ```bash
 docker compose run --rm php85 sh   # оболочка внутри контейнера
 ```
+
+## Лицензия
+
+MIT — см. [LICENSE](LICENSE).

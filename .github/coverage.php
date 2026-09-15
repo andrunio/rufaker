@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-// Reads line coverage out of a Clover report and prints it as GitHub Actions step outputs.
+// Reads line coverage out of a Clover report and fails the build when it sits below the floor.
 $report = $argv[1] ?? 'coverage.xml';
+$floor = (float)($argv[2] ?? 95);
 $clover = @simplexml_load_file($report);
 
 if ($clover === false) {
@@ -23,18 +24,10 @@ if ($statements === 0) {
 
 $percent = round($covered / $statements * 100, 2);
 
-// The scale shields.io applies to coverage badges of its own.
-$color = 'red';
+if ($percent < $floor) {
+    fwrite(STDERR, "::error::Line coverage $percent% is below the floor of $floor%.\n");
 
-foreach ([95 => 'brightgreen', 90 => 'green', 75 => 'yellow', 60 => 'orange'] as $floor => $name) {
-    if ($percent >= $floor) {
-        $color = $name;
-
-        break;
-    }
+    exit(1);
 }
 
-fwrite(STDERR, "Line coverage: $percent% ($covered of $statements statements).\n");
-
-echo "percent=$percent\n";
-echo "color=$color\n";
+echo "Line coverage: $percent% ($covered of $statements statements), the floor is $floor%.\n";
