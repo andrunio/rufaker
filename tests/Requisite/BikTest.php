@@ -62,7 +62,7 @@ final class BikTest extends TestCase
     }
 
     /**
-     * BIK of every bank the checks are built on.
+     * BIK of every participant the checks are built on, taken from the Bank of Russia directory.
      *
      * @return array<string, array{string}>
      */
@@ -72,6 +72,10 @@ final class BikTest extends TestCase
             'Sberbank' => ['044525225'],
             'Alfa-Bank' => ['044525593'],
             'Bank of Russia, Moscow' => ['044525000'],
+            'Federal Treasury of the Tula region' => ['017003983'],
+            'Federal Treasury of the Rostov region' => ['016015102'],
+            'a bank participating indirectly' => ['100070023'],
+            'an election commission, a client of the Bank of Russia' => ['211000237'],
         ];
     }
 
@@ -86,7 +90,7 @@ final class BikTest extends TestCase
             'empty' => [''],
             'ten digits' => ['0445252251'],
             'eight digits' => ['04452522'],
-            'foreign country prefix' => ['054525225'],
+            'kind of participation out of range' => ['344525225'],
             'letters' => ['04452522a'],
         ];
     }
