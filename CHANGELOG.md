@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-15
+
 ### Исправлено
 
 - `Bik::isValid()` больше не требует, чтобы номер начинался на `04`. Первый разряд БИК означает
@@ -20,10 +22,6 @@
   по любому из двух правил.
 - Казначейский счёт — номер начинается на `0` — принимается по структуре. Контрольной суммы
   у него нет: девятый разряд занят кодом публично-правового образования.
-
-### Добавлено
-
-- `README.md` называет, чем подтверждается каждый реквизит.
 
 ## [0.6.0] - 2026-09-14
 
@@ -208,7 +206,8 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/andrunio/rufaker/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/andrunio/rufaker/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/andrunio/rufaker/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/andrunio/rufaker/compare/v0.4.1...v0.4.2
