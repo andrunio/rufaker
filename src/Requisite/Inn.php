@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Requisite;
 
+use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\Digits;
 use RuFaker\Internal\StringValue;
@@ -25,15 +26,16 @@ final readonly class Inn implements Requisite
     private const array WEIGHTS_12 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8];
 
     /**
-     * Wraps an INN, rejecting a broken format or checksum.
+     * Wraps an INN, rejecting a broken format or checksum and one issued to another legal form.
      *
      * @param string $value
+     * @param LegalForm|null $form
      * @return self
      * @throws InvalidRequisite
      */
-    public static function from(string $value): self
+    public static function from(string $value, ?LegalForm $form = null): self
     {
-        return self::tryFrom($value)
+        return self::tryFrom($value, $form)
             ?? throw InvalidRequisite::for('INN', $value);
     }
 
@@ -41,23 +43,29 @@ final readonly class Inn implements Requisite
      * Wraps an INN, returning null instead of throwing.
      *
      * @param string $value
+     * @param LegalForm|null $form
      * @return self|null
      */
-    public static function tryFrom(string $value): ?self
+    public static function tryFrom(string $value, ?LegalForm $form = null): ?self
     {
-        return self::isValid($value)
+        return self::isValid($value, $form)
             ? new self($value)
             : null;
     }
 
     /**
-     * Tells whether the value carries a correct INN checksum.
+     * Tells whether the value carries a correct INN checksum and belongs to the form given.
      *
      * @param string $value
+     * @param LegalForm|null $form
      * @return bool
      */
-    public static function isValid(string $value): bool
+    public static function isValid(string $value, ?LegalForm $form = null): bool
     {
+        if ($form !== null && !Digits::areDigits($value, $form->innDigits())) {
+            return false;
+        }
+
         if (Digits::areDigits($value, 10)) {
             return $value === self::fromBody(substr($value, 0, 9))->value;
         }

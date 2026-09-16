@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Requisite;
 
+use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\Digits;
 use RuFaker\Internal\StringValue;
@@ -31,15 +32,16 @@ final readonly class Ogrn implements Requisite
     private const string SOLE_PROPRIETOR_PREFIX = '3';
 
     /**
-     * Wraps a registry number, rejecting a broken format or checksum.
+     * Wraps a registry number, rejecting a broken one and one issued to another legal form.
      *
      * @param string $value
+     * @param LegalForm|null $form
      * @return self
      * @throws InvalidRequisite
      */
-    public static function from(string $value): self
+    public static function from(string $value, ?LegalForm $form = null): self
     {
-        return self::tryFrom($value)
+        return self::tryFrom($value, $form)
             ?? throw InvalidRequisite::for('OGRN', $value);
     }
 
@@ -47,23 +49,29 @@ final readonly class Ogrn implements Requisite
      * Wraps a registry number, returning null instead of throwing.
      *
      * @param string $value
+     * @param LegalForm|null $form
      * @return self|null
      */
-    public static function tryFrom(string $value): ?self
+    public static function tryFrom(string $value, ?LegalForm $form = null): ?self
     {
-        return self::isValid($value)
+        return self::isValid($value, $form)
             ? new self($value)
             : null;
     }
 
     /**
-     * Tells whether the value is a registry number with a correct prefix and checksum.
+     * Tells whether the value is a registry number of the form given, with a correct prefix and checksum.
      *
      * @param string $value
+     * @param LegalForm|null $form
      * @return bool
      */
-    public static function isValid(string $value): bool
+    public static function isValid(string $value, ?LegalForm $form = null): bool
     {
+        if ($form !== null && !Digits::areDigits($value, $form->registryNumberDigits())) {
+            return false;
+        }
+
         if (Digits::areDigits($value, 13)) {
             return in_array($value[0], self::LEGAL_ENTITY_PREFIXES, true)
                 && $value === self::fromBody(substr($value, 0, 12))->value;
