@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-16
+
 ### Добавлено
 
 - `Inn` и `Ogrn` принимают правовую форму вторым аргументом: `Inn::isValid($value,
@@ -219,7 +221,8 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/andrunio/rufaker/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/andrunio/rufaker/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/andrunio/rufaker/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/andrunio/rufaker/compare/v0.4.2...v0.5.0
