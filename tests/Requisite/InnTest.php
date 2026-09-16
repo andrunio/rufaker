@@ -8,12 +8,19 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Requisite\Inn;
 
 #[CoversClass(Inn::class)]
 final class InnTest extends TestCase
 {
+    /** INN of Sberbank, the ten-digit number of an organization. */
+    private const string ORGANIZATION = '7707083893';
+
+    /** INN of a person, the twelve-digit number a sole proprietor carries as his own. */
+    private const string PERSONAL = '500100732259';
+
     #[Test]
     #[DataProvider('realNumbers')]
     public function it_accepts_a_real_inn(string $value): void
@@ -88,6 +95,35 @@ final class InnTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('formsAndNumbers')]
+    public function it_matches_a_number_against_the_form(LegalForm $form, string $accepted, string $rejected): void
+    {
+        $this->assertTrue(
+            Inn::isValid($accepted, $form),
+        );
+
+        $this->assertFalse(
+            Inn::isValid($rejected, $form),
+        );
+    }
+
+    #[Test]
+    public function it_throws_on_a_number_of_another_form(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+
+        Inn::from(self::ORGANIZATION, LegalForm::Ip);
+    }
+
+    #[Test]
+    public function it_returns_null_on_a_number_of_another_form(): void
+    {
+        $this->assertNull(
+            Inn::tryFrom(self::PERSONAL, LegalForm::Ooo),
+        );
+    }
+
+    #[Test]
     public function it_reads_the_region_and_the_kind(): void
     {
         $organization = Inn::from('7707083893');
@@ -120,6 +156,37 @@ final class InnTest extends TestCase
             '"7707083893"',
             json_encode($inn),
         );
+    }
+
+    /**
+     * Number every legal form accepts and rejects, listed rather than read out of the enum itself.
+     *
+     * @return array<string, array{LegalForm, string, string}>
+     */
+    public static function formsAndNumbers(): array
+    {
+        return [
+            'Ooo' => [
+                LegalForm::Ooo,
+                self::ORGANIZATION,
+                self::PERSONAL,
+            ],
+            'Ao' => [
+                LegalForm::Ao,
+                self::ORGANIZATION,
+                self::PERSONAL,
+            ],
+            'Pao' => [
+                LegalForm::Pao,
+                self::ORGANIZATION,
+                self::PERSONAL,
+            ],
+            'Ip' => [
+                LegalForm::Ip,
+                self::PERSONAL,
+                self::ORGANIZATION,
+            ],
+        ];
     }
 
     /**

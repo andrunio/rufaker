@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RuFaker\Enum\LegalForm;
 use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Requisite\Ogrn;
 
@@ -16,6 +17,9 @@ final class OgrnTest extends TestCase
 {
     /** Registry number of a sole proprietor, completed by the package: no value from real life is at hand yet. */
     private const string SOLE_PROPRIETOR = '304500100000017';
+
+    /** Registry number of Sberbank, the thirteen-digit number of a legal entity. */
+    private const string LEGAL_ENTITY = '1027700132195';
 
     /** Registry number of a record made in 2015, completed by the package: real numbers at hand all date to 2002. */
     private const string LATER_RECORD = '1157746123457';
@@ -132,6 +136,35 @@ final class OgrnTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('formsAndNumbers')]
+    public function it_matches_a_number_against_the_form(LegalForm $form, string $accepted, string $rejected): void
+    {
+        $this->assertTrue(
+            Ogrn::isValid($accepted, $form),
+        );
+
+        $this->assertFalse(
+            Ogrn::isValid($rejected, $form),
+        );
+    }
+
+    #[Test]
+    public function it_throws_on_a_number_of_another_form(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+
+        Ogrn::from(self::LEGAL_ENTITY, LegalForm::Ip);
+    }
+
+    #[Test]
+    public function it_returns_null_on_a_number_of_another_form(): void
+    {
+        $this->assertNull(
+            Ogrn::tryFrom(self::SOLE_PROPRIETOR, LegalForm::Ooo),
+        );
+    }
+
+    #[Test]
     public function it_reads_the_region_and_the_kind(): void
     {
         $entity = Ogrn::from('1027700132195');
@@ -217,6 +250,37 @@ final class OgrnTest extends TestCase
                 ),
             );
         }
+    }
+
+    /**
+     * Number every legal form accepts and rejects, listed rather than read out of the enum itself.
+     *
+     * @return array<string, array{LegalForm, string, string}>
+     */
+    public static function formsAndNumbers(): array
+    {
+        return [
+            'Ooo' => [
+                LegalForm::Ooo,
+                self::LEGAL_ENTITY,
+                self::SOLE_PROPRIETOR,
+            ],
+            'Ao' => [
+                LegalForm::Ao,
+                self::LEGAL_ENTITY,
+                self::SOLE_PROPRIETOR,
+            ],
+            'Pao' => [
+                LegalForm::Pao,
+                self::LEGAL_ENTITY,
+                self::SOLE_PROPRIETOR,
+            ],
+            'Ip' => [
+                LegalForm::Ip,
+                self::SOLE_PROPRIETOR,
+                self::LEGAL_ENTITY,
+            ],
+        ];
     }
 
     /**
