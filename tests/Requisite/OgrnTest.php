@@ -20,6 +20,15 @@ final class OgrnTest extends TestCase
     /** Registry number of a record made in 2015, completed by the package: real numbers at hand all date to 2002. */
     private const string LATER_RECORD = '1157746123457';
 
+    /** OGRN opening with 5, the rarer of the two prefixes of a legal entity: register of SMEs, 10.09.2026. */
+    private const string FIVE_PREFIXED_ENTITY = '5067746006620';
+
+    /** Number of a record in the register of legal entities, built from the OGRN of Sberbank by its prefix. */
+    private const string LEGAL_ENTITY_RECORD = '2027700132194';
+
+    /** Number of a record in the register of sole proprietors, built from an OGRNIP of the register of SMEs. */
+    private const string SOLE_PROPRIETOR_RECORD = '423265100024467';
+
     #[Test]
     #[DataProvider('realNumbers')]
     public function it_accepts_a_real_registry_number(string $value): void
@@ -42,6 +51,47 @@ final class OgrnTest extends TestCase
     {
         $this->assertFalse(
             Ogrn::isValid($value),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('realNumbers')]
+    public function it_rejects_every_other_prefix(string $value): void
+    {
+        $this->assertRejectedByEveryOtherPrefix($value);
+    }
+
+    #[Test]
+    public function it_accepts_the_rarer_prefix_of_a_legal_entity(): void
+    {
+        $this->assertTrue(
+            Ogrn::isValid(self::FIVE_PREFIXED_ENTITY),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_record_of_the_register_of_legal_entities(): void
+    {
+        $this->assertSame(
+            self::LEGAL_ENTITY_RECORD,
+            Ogrn::fromBody(substr(self::LEGAL_ENTITY_RECORD, 0, 12))->value,
+        );
+
+        $this->assertFalse(
+            Ogrn::isValid(self::LEGAL_ENTITY_RECORD),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_record_of_the_register_of_sole_proprietors(): void
+    {
+        $this->assertSame(
+            self::SOLE_PROPRIETOR_RECORD,
+            Ogrn::fromBody(substr(self::SOLE_PROPRIETOR_RECORD, 0, 14))->value,
+        );
+
+        $this->assertFalse(
+            Ogrn::isValid(self::SOLE_PROPRIETOR_RECORD),
         );
     }
 
@@ -137,6 +187,33 @@ final class OgrnTest extends TestCase
             $this->assertFalse(
                 Ogrn::isValid(
                     substr_replace($value, $digit, $position, 1),
+                ),
+            );
+        }
+    }
+
+    /**
+     * Asserts that no prefix but the one of its kind passes, with the checksum recomputed for each.
+     *
+     * @param string $value
+     * @return void
+     */
+    private function assertRejectedByEveryOtherPrefix(string $value): void
+    {
+        $allowed = strlen($value) === 13
+            ? ['1', '5']
+            : ['3'];
+
+        foreach (str_split('0123456789') as $digit) {
+            if (in_array($digit, $allowed, true)) {
+                continue;
+            }
+
+            $body = $digit . substr($value, 1, strlen($value) - 2);
+
+            $this->assertFalse(
+                Ogrn::isValid(
+                    Ogrn::fromBody($body)->value,
                 ),
             );
         }

@@ -24,6 +24,12 @@ final readonly class Ogrn implements Requisite
     /** Century both registries opened in: the number carries only the last two digits of the year. */
     private const int CENTURY = 2000;
 
+    /** Leading digits marking the number as the OGRN of a legal entity rather than a registry record. */
+    private const array LEGAL_ENTITY_PREFIXES = ['1', '5'];
+
+    /** Leading digit marking the number as the OGRNIP of a sole proprietor. */
+    private const string SOLE_PROPRIETOR_PREFIX = '3';
+
     /**
      * Wraps a registry number, rejecting a broken format or checksum.
      *
@@ -51,7 +57,7 @@ final readonly class Ogrn implements Requisite
     }
 
     /**
-     * Tells whether the value carries a correct registry number checksum.
+     * Tells whether the value is a registry number with a correct prefix and checksum.
      *
      * @param string $value
      * @return bool
@@ -59,11 +65,13 @@ final readonly class Ogrn implements Requisite
     public static function isValid(string $value): bool
     {
         if (Digits::areDigits($value, 13)) {
-            return $value === self::fromBody(substr($value, 0, 12))->value;
+            return in_array($value[0], self::LEGAL_ENTITY_PREFIXES, true)
+                && $value === self::fromBody(substr($value, 0, 12))->value;
         }
 
         if (Digits::areDigits($value, 15)) {
-            return $value === self::fromBody(substr($value, 0, 14))->value;
+            return $value[0] === self::SOLE_PROPRIETOR_PREFIX
+                && $value === self::fromBody(substr($value, 0, 14))->value;
         }
 
         return false;
