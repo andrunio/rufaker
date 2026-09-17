@@ -5,16 +5,23 @@
     "type": "library",
     "keywords": [
         "faker",
+        "faker-provider",
         "fake-data",
         "test-data",
         "fixtures",
+        "validation",
+        "checksum",
         "russia",
         "russian",
         "inn",
         "ogrn",
         "kpp",
         "bik",
-        "bank-account"
+        "bank-account",
+        "names",
+        "russian-names",
+        "company-names",
+        "bank-names"
     ],
     "authors": [
         {
