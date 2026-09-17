@@ -37,6 +37,13 @@ final readonly class OrganizationGenerator
     /** Sequence number of the first registration made on that reason. */
     private const string FIRST_SEQUENCE = '001';
 
+    /** Names a sole executive body goes by, article 40 of Law 14-FZ and article 69 of Law 208-FZ. */
+    private const array POSITIONS = [
+        'Генеральный директор',
+        'Директор',
+        'Президент',
+    ];
+
     /** Names of sole proprietors, the one part of a business that is a person. */
     private PersonGenerator $people;
 
@@ -83,6 +90,8 @@ final readonly class OrganizationGenerator
             $person,
             $form->isIndividual() ? null : TitleBook::random($this->randomizer),
             $initials,
+            $form->isCorporate() ? $this->people->generate() : null,
+            $form->isCorporate() ? $this->position() : null,
         );
     }
 
@@ -202,6 +211,18 @@ final readonly class OrganizationGenerator
     }
 
     /**
+     * Picks the position the head of a company holds.
+     *
+     * @return string
+     */
+    private function position(): string
+    {
+        $positions = self::POSITIONS;
+
+        return $positions[$this->randomizer->getInt(0, count($positions) - 1)];
+    }
+
+    /**
      * Picks a two-digit tax office number at random.
      *
      * @return string
@@ -230,5 +251,4 @@ final readonly class OrganizationGenerator
 
         return Calendar::dayWithin($this->randomizer, $first, Calendar::yearCloses(self::LAST_YEAR));
     }
-
 }
