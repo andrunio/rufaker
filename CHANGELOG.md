@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-17
+
 ### Добавлено
 
 - У юрлица появился руководитель: `$company->head` — ФИО, `$company->headPosition` —
@@ -234,7 +236,8 @@
 - Любой реквизит приводится к строке и сериализуется в JSON; у готового набора есть `toArray()`.
 - Ни одной зависимости, кроме самого PHP 8.3.
 
-[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/andrunio/rufaker/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/andrunio/rufaker/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/andrunio/rufaker/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/andrunio/rufaker/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/andrunio/rufaker/compare/v0.5.0...v0.6.0
