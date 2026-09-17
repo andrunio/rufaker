@@ -66,6 +66,12 @@ final class OrganizationTest extends TestCase
     /** Registry number of a legal entity from another region, completed by the package itself. */
     private const string PETERSBURG_OGRN = '1027801000017';
 
+    /** INN of the head in the fixtures: a personal number of another region, completed by the package. */
+    private const string HEAD_INN = '780000004260';
+
+    /** Position the head in the fixtures holds. */
+    private const string HEAD_POSITION = 'Генеральный директор';
+
     #[Test]
     public function it_assembles_a_legal_entity(): void
     {
@@ -315,6 +321,156 @@ final class OrganizationTest extends TestCase
     }
 
     #[Test]
+    public function it_gives_the_head_of_a_legal_entity(): void
+    {
+        $organization = $this->sberbank();
+
+        $this->assertSame(
+            'Петрова Мария Сергеевна',
+            $organization->head,
+        );
+
+        $this->assertSame(
+            self::HEAD_POSITION,
+            $organization->headPosition,
+        );
+
+        $this->assertSame(
+            'Петрова',
+            $organization->head()?->lastName,
+        );
+    }
+
+    #[Test]
+    public function it_leaves_a_sole_proprietor_without_a_head(): void
+    {
+        $organization = $this->soleProprietor();
+
+        $this->assertNull(
+            $organization->head,
+        );
+
+        $this->assertNull(
+            $organization->headPosition,
+        );
+
+        $this->assertNull(
+            $organization->head(),
+        );
+    }
+
+    #[Test]
+    public function it_accepts_a_head_carrying_a_number_of_their_own(): void
+    {
+        $organization = $this->sberbank();
+        $inn = $organization->head()?->inn;
+
+        $this->assertSame(
+            self::HEAD_INN,
+            $inn,
+        );
+
+        $this->assertNotSame(
+            $organization->inn,
+            $inn,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_legal_entity_without_a_head(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Presence of a head contradicts the legal form pao.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
+            Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_sole_proprietor_carrying_a_head(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('Presence of a head contradicts the legal form ip.');
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
+            null,
+            $this->entrepreneur(),
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_head_without_a_position(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A head and their position go together.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
+            Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
+            head: $this->head(),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_position_without_a_head(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A head and their position go together.');
+
+        new Organization(
+            LegalForm::Ip,
+            Region::from(self::MOSCOW_OBLAST),
+            Inn::from(self::PERSONAL_INN),
+            Ogrn::from(self::SOLE_PROPRIETOR_OGRN),
+            $this->date(self::PROPRIETOR_REGISTERED),
+            null,
+            $this->entrepreneur(),
+            headPosition: self::HEAD_POSITION,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_an_empty_position(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+        $this->expectExceptionMessage('A head must have a position.');
+
+        new Organization(
+            LegalForm::Pao,
+            Region::from(self::MOSCOW),
+            Inn::from(self::SBERBANK_INN),
+            Ogrn::from(self::SBERBANK_OGRN),
+            $this->date(self::ENTITY_REGISTERED),
+            Kpp::from(self::SBERBANK_KPP),
+            null,
+            self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: '   ',
+        );
+    }
+
+    #[Test]
     public function it_names_the_person_behind_a_sole_proprietor(): void
     {
         $this->assertSame(
@@ -380,6 +536,8 @@ final class OrganizationTest extends TestCase
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
         );
     }
 
@@ -398,6 +556,8 @@ final class OrganizationTest extends TestCase
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
         );
     }
 
@@ -416,6 +576,8 @@ final class OrganizationTest extends TestCase
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
         );
     }
 
@@ -434,6 +596,8 @@ final class OrganizationTest extends TestCase
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
         );
     }
 
@@ -452,6 +616,8 @@ final class OrganizationTest extends TestCase
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
         );
     }
 
@@ -486,6 +652,8 @@ final class OrganizationTest extends TestCase
                 'kpp' => self::SBERBANK_KPP,
                 'registration_date' => self::ENTITY_REGISTERED,
                 'person' => null,
+                'head' => 'Петрова Мария Сергеевна',
+                'head_position' => self::HEAD_POSITION,
             ],
             $this->sberbank()->toArray(),
         );
@@ -513,7 +681,8 @@ final class OrganizationTest extends TestCase
             '{"form":"ПАО","short_name":"ПАО \"Сбербанк России\"",'
             . '"full_name":"Публичное акционерное общество \"Сбербанк России\"",'
             . '"region":"77","inn":"7707083893","ogrn":"1027700132195","kpp":"773601001",'
-            . '"registration_date":"2002-12-02","person":null}',
+            . '"registration_date":"2002-12-02","person":null,'
+            . '"head":"Петрова Мария Сергеевна","head_position":"Генеральный директор"}',
             json_encode($organization, JSON_UNESCAPED_UNICODE),
         );
     }
@@ -591,6 +760,8 @@ final class OrganizationTest extends TestCase
             Kpp::from(self::SBERBANK_KPP),
             null,
             self::SBERBANK_TITLE,
+            head: $this->head(),
+            headPosition: self::HEAD_POSITION,
         );
     }
 
@@ -641,6 +812,24 @@ final class OrganizationTest extends TestCase
             'Иванович',
             $this->date('2005-06-01'),
             Inn::from(self::PERSONAL_INN),
+        );
+    }
+
+    /**
+     * Builds the head of a legal entity: a person of another region, carrying a number of their own.
+     *
+     * @return Person
+     * @throws InvalidRequisite
+     */
+    private function head(): Person
+    {
+        return new Person(
+            Gender::Female,
+            'Петрова',
+            'Мария',
+            'Сергеевна',
+            $this->date(self::BIRTH_DATE),
+            Inn::from(self::HEAD_INN),
         );
     }
 

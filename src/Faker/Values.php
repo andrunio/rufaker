@@ -49,7 +49,10 @@ final readonly class Values
      *     inn: string,
      *     ogrn: string,
      *     kpp: string|null,
+     *     registration_date: string,
      *     person: string|null,
+     *     head: string|null,
+     *     head_position: string|null,
      * }
      */
     public function organization(

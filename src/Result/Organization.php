@@ -45,6 +45,12 @@ final readonly class Organization implements Result
     /** Day the record was made in the registry, in ISO 8601. */
     public string $registrationDate;
 
+    /** Name of the head of the business in the nominative case; a sole proprietor has none. */
+    public ?string $head;
+
+    /** Position the head holds; a sole proprietor has none. */
+    public ?string $headPosition;
+
     /** Legal form as the enum case it came from. */
     private LegalForm $formType;
 
@@ -66,6 +72,9 @@ final readonly class Organization implements Result
     /** Full name of the sole proprietor; a legal entity has none. */
     private ?Person $personType;
 
+    /** Head of the business as the person they came from; a sole proprietor has none. */
+    private ?Person $headType;
+
     /**
      * Assembles business requisites, rejecting a set that contradicts itself.
      *
@@ -78,6 +87,8 @@ final readonly class Organization implements Result
      * @param Person|null $person
      * @param string|null $title
      * @param bool $initials
+     * @param Person|null $head
+     * @param string|null $headPosition
      * @throws InvalidRequisite
      */
     public function __construct(
@@ -90,6 +101,8 @@ final readonly class Organization implements Result
         ?Person           $person = null,
         ?string           $title = null,
         bool              $initials = false,
+        ?Person           $head = null,
+        ?string           $headPosition = null,
     )
     {
         $innDigits = $form->innDigits();
@@ -117,6 +130,18 @@ final readonly class Organization implements Result
 
         if ($title !== null && trim($title) === '') {
             throw InvalidRequisite::because('A business must have a title.');
+        }
+
+        if ($form->isCorporate() !== ($head instanceof Person)) {
+            throw InvalidRequisite::because("Presence of a head contradicts the legal form $form->value.");
+        }
+
+        if (($head instanceof Person) !== ($headPosition !== null)) {
+            throw InvalidRequisite::because('A head and their position go together.');
+        }
+
+        if ($headPosition !== null && trim($headPosition) === '') {
+            throw InvalidRequisite::because('A head must have a position.');
         }
 
         if ($person instanceof Person && $person->inn === null) {
@@ -162,6 +187,7 @@ final readonly class Organization implements Result
         $this->kppType = $kpp;
         $this->registrationDateType = $registrationDate;
         $this->personType = $person;
+        $this->headType = $head;
 
         $this->form = $form->shortTitle();
         $this->shortName = self::buildShortName($form, $person, $title, $initials);
@@ -171,6 +197,8 @@ final readonly class Organization implements Result
         $this->ogrn = $ogrn->value;
         $this->kpp = $kpp?->value;
         $this->registrationDate = $registered;
+        $this->head = $head?->fullName;
+        $this->headPosition = $headPosition;
     }
 
     /**
@@ -241,6 +269,16 @@ final readonly class Organization implements Result
     public function person(): ?Person
     {
         return $this->personType;
+    }
+
+    /**
+     * Returns the head as the person they came from.
+     *
+     * @return Person|null
+     */
+    public function head(): ?Person
+    {
+        return $this->headType;
     }
 
     /**
@@ -325,6 +363,8 @@ final readonly class Organization implements Result
      *     kpp: string|null,
      *     registration_date: string,
      *     person: string|null,
+     *     head: string|null,
+     *     head_position: string|null,
      * }
      */
     public function toArray(): array
@@ -339,6 +379,8 @@ final readonly class Organization implements Result
             'kpp' => $this->kpp,
             'registration_date' => $this->registrationDate,
             'person' => $this->personType?->fullName,
+            'head' => $this->head,
+            'head_position' => $this->headPosition,
         ];
     }
 }

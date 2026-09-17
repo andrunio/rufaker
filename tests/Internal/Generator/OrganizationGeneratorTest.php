@@ -32,6 +32,13 @@ final class OrganizationGeneratorTest extends TestCase
     /** Years back the window of a registration closes, mirroring the constant of the generator. */
     private const int LAST_YEAR = 1;
 
+    /** Positions a head holds, in the order sort() puts them; the generator draws out of this list. */
+    private const array POSITIONS = [
+        'Генеральный директор',
+        'Директор',
+        'Президент',
+    ];
+
     #[Test]
     public function it_generates_requisites_that_pass_their_own_validation(): void
     {
@@ -255,6 +262,67 @@ final class OrganizationGeneratorTest extends TestCase
             '/^ИП [А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.$/u',
             $short->shortName,
         );
+    }
+
+    #[Test]
+    #[DataProvider('forms')]
+    public function it_appoints_a_head_only_where_the_form_has_one(LegalForm $form): void
+    {
+        $generator = $this->generator();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $organization = $generator->generate($form);
+
+            $this->assertSame(
+                $form->isCorporate(),
+                $organization->head() instanceof Person,
+            );
+
+            $this->assertSame(
+                $form->isCorporate(),
+                $organization->headPosition !== null,
+            );
+        }
+    }
+
+    #[Test]
+    public function it_draws_the_position_of_a_head_out_of_its_own_list(): void
+    {
+        $generator = $this->generator();
+        $drawn = [];
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $drawn[] = $generator->generate(LegalForm::Ooo)->headPosition;
+        }
+
+        sort($drawn);
+
+        $this->assertSame(
+            self::POSITIONS,
+            array_values(array_unique($drawn)),
+        );
+    }
+
+    #[Test]
+    public function it_gives_the_head_a_number_of_their_own(): void
+    {
+        $generator = $this->generator();
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $organization = $generator->generate(LegalForm::Ooo);
+            $inn = $organization->head()?->inn();
+
+            $this->assertInstanceOf(Inn::class, $inn);
+
+            $this->assertTrue(
+                $inn->isPersonal(),
+            );
+
+            $this->assertNotSame(
+                $organization->inn,
+                $inn->value,
+            );
+        }
     }
 
     #[Test]
