@@ -11,9 +11,12 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
+use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
+use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Generator\OrganizationGenerator;
+use RuFaker\Internal\Generator\PersonGenerator;
 use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
@@ -31,6 +34,21 @@ final class OrganizationGeneratorTest extends TestCase
 
     /** Years back the window of a registration closes, mirroring the constant of the generator. */
     private const int LAST_YEAR = 1;
+
+    /** Age of a person old enough to register as a sole proprietor, article 21 of the Civil Code. */
+    private const int ADULT_AGE = 18;
+
+    /** Age of a person too young for it, drawn from the same article. */
+    private const int CHILD_AGE = 10;
+
+    /** Name handed to the generator; the title book holds no such word, so a draw cannot produce it. */
+    private const string GIVEN_TITLE = 'Рассвет';
+
+    /** Personal INN opened by region 66, twelve digits with a valid checksum. */
+    private const string PROPRIETOR_INN = '663266525158';
+
+    /** Personal INN whose two leading digits address no federal subject. */
+    private const string HOMELESS_INN = '001234567887';
 
     /** Positions a head holds, in the order sort() puts them; the generator draws out of this list. */
     private const array POSITIONS = [
@@ -110,7 +128,8 @@ final class OrganizationGeneratorTest extends TestCase
     #[DataProvider('forms')]
     public function it_follows_the_structure_of_the_legal_form(LegalForm $form): void
     {
-        $organization = $this->generator()->generate($form);
+        $organization = $this->generator()
+            ->generate($form);
 
         $this->assertSame(
             $form->innDigits(),
@@ -161,7 +180,8 @@ final class OrganizationGeneratorTest extends TestCase
         $last = Calendar::yearCloses(self::LAST_YEAR);
 
         foreach (range(1, self::RUNS) as $ignored) {
-            $registered = $generator->generate($form)->registrationDate();
+            $registered = $generator->generate($form)
+                ->registrationDate();
 
             $this->assertGreaterThanOrEqual(
                 $opened,
@@ -213,7 +233,8 @@ final class OrganizationGeneratorTest extends TestCase
     #[Test]
     public function it_honours_a_requested_region(): void
     {
-        $organization = $this->generator()->generate(LegalForm::Ooo, Region::from('77'));
+        $organization = $this->generator()
+            ->generate(LegalForm::Ooo, Region::from('77'));
 
         $this->assertSame(
             '77',
@@ -224,6 +245,140 @@ final class OrganizationGeneratorTest extends TestCase
             '77',
             $organization->inn,
         );
+    }
+
+    #[Test]
+    public function it_registers_a_given_person_as_a_sole_proprietor(): void
+    {
+        $person = $this->person(
+            region: Region::from('66'),
+        );
+
+        $organization = $this->generator()
+            ->generate(person: $person);
+
+        $this->assertSame(
+            LegalForm::Ip,
+            $organization->form(),
+        );
+
+        $this->assertSame(
+            $person,
+            $organization->person(),
+        );
+
+        $this->assertSame(
+            $person->inn,
+            $organization->inn,
+        );
+
+        $this->assertSame(
+            '66',
+            $organization->region,
+        );
+
+        $this->assertSame(
+            '66',
+            $organization->ogrn()->region()?->value,
+        );
+
+        $this->assertGreaterThanOrEqual(
+            $this->cameOfAge($person),
+            $organization->registrationDate(),
+        );
+    }
+
+    #[Test]
+    public function it_names_a_legal_entity_the_way_it_was_asked(): void
+    {
+        $generator = $this->generator();
+        $drawn = [];
+
+        foreach (range(1, self::RUNS) as $ignored) {
+            $organization = $generator->generate(title: self::GIVEN_TITLE);
+
+            $this->assertSame(
+                $organization->form . ' "' . self::GIVEN_TITLE . '"',
+                $organization->shortName,
+            );
+
+            $drawn[$organization->form] = true;
+        }
+
+        $forms = array_keys($drawn);
+        sort($forms);
+
+        // A form drawn out of every case would hit a sole proprietor, and one carries no title.
+        $this->assertSame(
+            ['АО', 'ООО', 'ПАО'],
+            $forms,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_legal_form_a_person_cannot_take(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(LegalForm::Ooo, person: $this->person());
+    }
+
+    #[Test]
+    public function it_rejects_a_region_a_person_does_not_come_from(): void
+    {
+        $person = $this->person(region: Region::from('66'));
+
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(region: Region::from('77'), person: $person);
+    }
+
+    #[Test]
+    public function it_rejects_a_gender_a_person_does_not_have(): void
+    {
+        $person = $this->person(Gender::Female);
+
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(gender: Gender::Male, person: $person);
+    }
+
+    #[Test]
+    public function it_rejects_a_title_a_sole_proprietor_cannot_carry(): void
+    {
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(LegalForm::Ip, title: self::GIVEN_TITLE);
+    }
+
+    #[Test]
+    public function it_rejects_a_person_carrying_no_number(): void
+    {
+        $person = $this->assembled(Calendar::yearOpens(self::ADULT_AGE), null);
+
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(person: $person);
+    }
+
+    #[Test]
+    public function it_rejects_a_number_addressing_no_region(): void
+    {
+        $person = $this->assembled(Calendar::yearOpens(self::ADULT_AGE), self::HOMELESS_INN);
+
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(person: $person);
+    }
+
+    #[Test]
+    public function it_rejects_a_person_who_has_not_come_of_age(): void
+    {
+        $person = $this->assembled(Calendar::yearOpens(self::CHILD_AGE), self::PROPRIETOR_INN);
+
+        $this->expectException(InvalidRequisite::class);
+
+        $this->generator()->generate(person: $person);
     }
 
     #[Test]
@@ -369,6 +524,44 @@ final class OrganizationGeneratorTest extends TestCase
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         return $person->birthDate()->modify('+18 years');
+    }
+
+    /**
+     * Builds a person the way the package does, to hand them back as a sole proprietor.
+     *
+     * @param Gender|null $gender
+     * @param Region|null $region
+     * @return Person
+     */
+    private function person(?Gender $gender = null, ?Region $region = null): Person
+    {
+        $people = new PersonGenerator(
+            new Randomizer(
+                new Mt19937(4321),
+            ),
+        );
+
+        return $people->generate($gender, $region);
+    }
+
+    /**
+     * Assembles a person out of given parts, the way a user building a fixture by hand does.
+     *
+     * @param DateTimeImmutable $birthDate
+     * @param string|null $inn
+     * @return Person
+     * @throws InvalidRequisite
+     */
+    private function assembled(DateTimeImmutable $birthDate, ?string $inn): Person
+    {
+        return new Person(
+            Gender::Male,
+            'Волков',
+            'Пётр',
+            'Ильич',
+            $birthDate,
+            $inn === null ? null : Inn::from($inn),
+        );
     }
 
     /**

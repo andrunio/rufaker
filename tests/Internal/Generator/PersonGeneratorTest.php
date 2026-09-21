@@ -115,6 +115,25 @@ final class PersonGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function it_carries_the_date_of_birth_it_was_handed(): void
+    {
+        $birthDate = Calendar::yearOpens(self::ADULT_AGE);
+
+        $person = $this->generator()
+            ->generate(birthDate: $birthDate);
+
+        $this->assertSame(
+            $birthDate->format('Y-m-d'),
+            $person->birthDate,
+        );
+
+        $this->assertSame(
+            $birthDate,
+            $person->birthDate(),
+        );
+    }
+
+    #[Test]
     public function it_issues_a_personal_number_of_the_requested_region(): void
     {
         $inn = $this->generator()
@@ -164,7 +183,10 @@ final class PersonGeneratorTest extends TestCase
     public function it_draws_nobody_younger_than_the_age_of_majority(): void
     {
         $generator = $this->generator();
-        $today = Calendar::yearCloses(0)->setDate((int)Calendar::yearCloses(0)->format('Y'), 1, 1);
+
+        $today = Calendar::yearCloses(0)->setDate(
+            (int)Calendar::yearCloses(0)->format('Y'), 1, 1,
+        );
 
         foreach (range(1, self::RUNS) as $ignored) {
             $age = $generator->generate()->birthDate()->diff($today)->y;

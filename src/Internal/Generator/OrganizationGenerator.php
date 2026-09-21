@@ -10,6 +10,7 @@ use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Digits;
 use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
+use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\TitleBook;
 use RuFaker\Requisite\Inn;
 use RuFaker\Requisite\Kpp;
@@ -64,20 +65,39 @@ final readonly class OrganizationGenerator
      * @param Region|null $region
      * @param Gender|null $gender
      * @param bool $initials
+     * @param Person|null $person
+     * @param string|null $title
      * @return Organization
+     * @throws InvalidRequisite
      */
     public function generate(
         ?LegalForm $form = null,
         ?Region    $region = null,
         ?Gender    $gender = null,
         bool       $initials = false,
+        ?Person    $person = null,
+        ?string    $title = null,
     ): Organization
     {
-        $form ??= $this->form();
+        $inn = null;
+
+        if ($person instanceof Person) {
+            $inn = self::proprietorNumber($person, $form, $region, $gender);
+            $form = LegalForm::Ip;
+            // The region is read off the number, which was rejected above if it carries none.
+            $region = $inn->region();
+        }
+
+        $form ??= $title === null ? $this->form() : $this->corporateForm();
+
+        if ($form->isIndividual() && $title !== null) {
+            throw InvalidRequisite::because('A sole proprietor is named after their own full name.');
+        }
+
         $region ??= Region::random($this->randomizer);
         $taxOffice = $this->taxOffice();
-        $inn = $this->buildInn($form, $region);
-        $person = $form->isIndividual() ? $this->people->generate($gender, $region, $inn) : null;
+        $inn ??= $this->buildInn($form, $region);
+        $person ??= $form->isIndividual() ? $this->people->generate($gender, $region, inn: $inn) : null;
         $registrationDate = $this->registrationDate($form, $person);
 
         return new Organization(
@@ -88,7 +108,7 @@ final readonly class OrganizationGenerator
             $registrationDate,
             $form->hasKpp() ? $this->buildKpp($region, $taxOffice) : null,
             $person,
-            $form->isIndividual() ? null : TitleBook::random($this->randomizer),
+            $form->isIndividual() ? null : ($title ?? TitleBook::random($this->randomizer)),
             $initials,
             $form->isCorporate() ? $this->people->generate() : null,
             $form->isCorporate() ? $this->position() : null,
@@ -205,8 +225,34 @@ final readonly class OrganizationGenerator
      */
     private function form(): LegalForm
     {
-        $forms = LegalForm::cases();
+        return $this->pick(LegalForm::cases());
+    }
 
+    /**
+     * Picks a form of a legal entity: the sole proprietor is the one a title cannot stand behind.
+     *
+     * @return LegalForm
+     */
+    private function corporateForm(): LegalForm
+    {
+        return $this->pick(
+            array_values(
+                array_filter(
+                    LegalForm::cases(),
+                    static fn(LegalForm $form): bool => $form->isCorporate(),
+                ),
+            ),
+        );
+    }
+
+    /**
+     * Draws one legal form out of the given list.
+     *
+     * @param list<LegalForm> $forms
+     * @return LegalForm
+     */
+    private function pick(array $forms): LegalForm
+    {
         return $forms[$this->randomizer->getInt(0, count($forms) - 1)];
     }
 
@@ -250,5 +296,51 @@ final readonly class OrganizationGenerator
         }
 
         return Calendar::dayWithin($this->randomizer, $first, Calendar::yearCloses(self::LAST_YEAR));
+    }
+
+    /**
+     * Reads the INN a person brings to their own registration, rejecting arguments that deny it.
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @param Person $person
+     * @param LegalForm|null $form
+     * @param Region|null $region
+     * @param Gender|null $gender
+     * @return Inn
+     * @throws InvalidRequisite
+     */
+    private static function proprietorNumber(
+        Person     $person,
+        ?LegalForm $form,
+        ?Region    $region,
+        ?Gender    $gender,
+    ): Inn
+    {
+        if ($form instanceof LegalForm && !$form->isIndividual()) {
+            throw InvalidRequisite::because("A person cannot be registered as $form->value.");
+        }
+
+        if ($gender instanceof Gender && $gender !== $person->gender()) {
+            throw InvalidRequisite::because("$person->fullName is not of the $gender->value gender.");
+        }
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $cameOfAge = $person->birthDate()->modify(self::ADULT_AGE);
+
+        if ($cameOfAge > new DateTimeImmutable()) {
+            throw InvalidRequisite::because("A sole proprietor comes of age first: $person->fullName has not.");
+        }
+
+        $inn = $person->inn()
+            ?? throw InvalidRequisite::because("$person->fullName carries no INN and cannot register.");
+
+        $home = $inn->region()
+            ?? throw InvalidRequisite::because("INN $inn->value belongs to no region.");
+
+        if ($region instanceof Region && $region->value !== $home->value) {
+            throw InvalidRequisite::because("$person->fullName belongs to region $home->value, not $region->value.");
+        }
+
+        return $inn;
     }
 }

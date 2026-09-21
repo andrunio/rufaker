@@ -7,6 +7,7 @@ namespace RuFaker\Internal\Generator;
 use DateTimeImmutable;
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
+use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\Calendar;
 use RuFaker\Internal\Digits;
 use RuFaker\Internal\NameBook;
@@ -44,12 +45,20 @@ final readonly class PersonGenerator
      *
      * @param Gender|null $gender
      * @param Region|null $region
+     * @param DateTimeImmutable|null $birthDate
      * @param Inn|null $inn
      * @return Person
+     * @throws InvalidRequisite
      */
-    public function generate(?Gender $gender = null, ?Region $region = null, ?Inn $inn = null): Person
+    public function generate(
+        ?Gender            $gender = null,
+        ?Region            $region = null,
+        ?DateTimeImmutable $birthDate = null,
+        ?Inn               $inn = null,
+    ): Person
     {
         $gender ??= $this->gender();
+
         $inn ??= $this->inn($region ?? Region::random($this->randomizer));
 
         return new Person(
@@ -57,7 +66,7 @@ final readonly class PersonGenerator
             $this->pick(NameBook::lastNames($gender)),
             $this->pick(NameBook::firstNames($gender)),
             $this->pick(NameBook::patronymics($gender)),
-            $this->birthDate(),
+            $birthDate ?? $this->birthDate(),
             $inn,
         );
     }

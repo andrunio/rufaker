@@ -128,10 +128,12 @@ use RuFaker\Enum\LegalForm;
 use RuFaker\Requisite\Region;
 
 $ru->organization();                                        // форма и регион случайные
-$ru->organization(LegalForm::Ip);                           // форма задана
+$ru->organization(LegalForm::Ip);                           // задана форма
 $ru->organization(LegalForm::Ooo, Region::from('77'));      // и регион
 $ru->organization(LegalForm::Ip, null, Gender::Female);     // пол предпринимателя
 $ru->organization(LegalForm::Ip, initials: true);           // ФИО в наименовании — инициалами
+$ru->organization(title: 'Рассвет');                        // задано наименование
+$ru->organization(person: $person);                         // ИП из готового физлица
 ```
 
 Формы — `Ooo`, `Ao`, `Pao`, `Ip`. Форма определяет всё остальное: длину ИНН и ОГРН, наличие КПП,
@@ -164,7 +166,15 @@ $company->person()->fullName;  // 'Успенский Пётр Иванович'
 $company->person()->lastName;  // 'Успенский'
 ```
 
-Название юрлица берётся из словаря пакета — 127 слов, по одному слову в кавычках.
+Название юрлица берётся из словаря пакета — 127 слов, по одному слову в кавычках. Своё название
+передаётся аргументом — например, когда тест ищет контрагента по наименованию:
+
+```php
+$ru->organization(LegalForm::Ooo, title: 'Рассвет')->shortName;  // 'ООО "Рассвет"'
+```
+
+Без заданной формы она выбирается среди форм юрлица — `Ooo`, `Ao`, `Pao`: наименование бывает
+только у них.
 
 У предпринимателя наименование строится из ФИО, и у него есть третья, неофициальная форма —
 с инициалами. Она включается флагом при генерации:
@@ -190,8 +200,9 @@ $company->head()?->birthDate;  // '1952-07-11'
 
 ```php
 $ru->person();                            // пол, дата рождения и ИНН случайные
-$ru->person(Gender::Female);              // пол задан
+$ru->person(Gender::Female);              // задан пол
 $ru->person(region: Region::from('77'));  // ИНН выдан Московской инспекцией ФНС
+$ru->person(birthDate: $date);            // задана дата рождения
 
 $person->gender;                          // 'женский'
 $person->gender()->value;                 // 'female'
@@ -210,7 +221,12 @@ $ru->person(Gender::Female)->fullName;  // 'Шевченко Валерия Ил
 на каждый пол. Сторонние справочники не подключаются.
 
 Дата рождения выдаётся в ISO 8601 — в том виде, в каком её ждут база и JSON, а не в том, как её
-пишут в паспорте. Со скобками возвращается `DateTimeImmutable`.
+пишут в паспорте. Со скобками возвращается `DateTimeImmutable`. Задать её можно аргументом —
+например, для проверки возрастного ограничения:
+
+```php
+$ru->person(birthDate: new DateTimeImmutable('-18 years'))->birthDate;  // день совершеннолетия
+```
 
 ИНН физлица — те же двенадцать знаков, что у предпринимателя, и это один и тот же номер: человек
 получает его до регистрации и оставляет себе после.
@@ -444,6 +460,26 @@ $bank->settlement;  // '40802810200009422091' — 40802, счёт предпри
 
 Для ООО тот же код даст счёт на `40702`.
 
+### Человек, а потом предприниматель
+
+В фикстуре человек сначала физлицо, а потом открывает ИП. Номер у них один: ИНН выдают физлицу
+до регистрации, и после неё он остаётся тем же.
+
+```php
+$person = $ru->person(Gender::Male, Region::from('66'));
+$ip = $ru->organization(person: $person);
+
+$person->inn;    // '661609485615'
+$ip->inn;        // '661609485615' — тот же номер
+$ip->shortName;  // 'ИП Ефимов Вадим Фёдорович'
+$ip->ogrn;       // '323662710664985'
+$ip->region;     // '66'
+```
+
+Форму и регион задаёт сам человек: форма — `Ip`, регион — тот, что стоит в его ИНН. Аргумент,
+который ему противоречит, отвергается: чужой регион, другой пол, форма юрлица, наименование.
+Человека без ИНН и человека младше восемнадцати предпринимателем не сделать.
+
 ### Реквизиты и подпись в документе
 
 Договор или акт подписывает руководитель, поэтому организация и банк собираются вместе:
@@ -555,12 +591,13 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 ## Справочник
 
 **Генерация.** Источник случайности задаётся конструктором: `new RuFaker()`,
-`new RuFaker($randomizer)` или `RuFaker::seeded(1234)`.
+`new RuFaker($randomizer)` или `RuFaker::seeded(1234)`. Заданные части набора передаются
+именованными аргументами: `initials`, `person`, `title`, `birthDate`.
 
 | Вызов | Отдаёт |
 |---|---|
-| `organization(?LegalForm, ?Region, ?Gender, bool $initials = false)` | `Result\Organization` |
-| `person(?Gender, ?Region)` | `Result\Person` |
+| `organization(?LegalForm, ?Region, ?Gender, bool, ?Person, ?string)` | `Result\Organization` |
+| `person(?Gender, ?Region, ?DateTimeImmutable)` | `Result\Person` |
 | `bankAccount(?Bik, ?LegalForm)` | `Result\BankAccount` |
 | `inn(?LegalForm, ?Region)` | `Requisite\Inn` |
 | `ogrn(?LegalForm, ?Region)` | `Requisite\Ogrn` |
@@ -615,8 +652,8 @@ $faker->optional()->ruFaker()->inn();  // иногда Error: Call to a member f
 
 | Вызов | Отдаёт |
 |---|---|
-| `ruFaker()->organization(?LegalForm, ?Region, ?Gender, bool $initials = false)` | `array` |
-| `ruFaker()->person(?Gender, ?Region)` | `array` |
+| `ruFaker()->organization(?LegalForm, ?Region, ?Gender, bool, ?Person, ?string)` | `array` |
+| `ruFaker()->person(?Gender, ?Region, ?DateTimeImmutable)` | `array` |
 | `ruFaker()->bankAccount(?Bik, ?LegalForm)` | `array` |
 | `ruFaker()->inn(?LegalForm, ?Region)` | `string` |
 | `ruFaker()->ogrn(?LegalForm, ?Region)` | `string` |
