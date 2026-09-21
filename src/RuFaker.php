@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace RuFaker;
 
+use DateTimeImmutable;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 use RuFaker\Enum\Gender;
 use RuFaker\Enum\LegalForm;
+use RuFaker\Exception\InvalidRequisite;
 use RuFaker\Internal\Generator\BankAccountGenerator;
 use RuFaker\Internal\Generator\OrganizationGenerator;
 use RuFaker\Internal\Generator\PersonGenerator;
@@ -68,16 +70,21 @@ final readonly class RuFaker
      * @param Region|null $region
      * @param Gender|null $gender
      * @param bool $initials
+     * @param Person|null $person
+     * @param string|null $title
      * @return Organization
+     * @throws InvalidRequisite
      */
     public function organization(
         ?LegalForm $form = null,
         ?Region    $region = null,
         ?Gender    $gender = null,
         bool       $initials = false,
+        ?Person    $person = null,
+        ?string    $title = null,
     ): Organization
     {
-        return $this->organizations->generate($form, $region, $gender, $initials);
+        return $this->organizations->generate($form, $region, $gender, $initials, $person, $title);
     }
 
     /**
@@ -85,11 +92,17 @@ final readonly class RuFaker
      *
      * @param Gender|null $gender
      * @param Region|null $region
+     * @param DateTimeImmutable|null $birthDate
      * @return Person
+     * @throws InvalidRequisite
      */
-    public function person(?Gender $gender = null, ?Region $region = null): Person
+    public function person(
+        ?Gender            $gender = null,
+        ?Region            $region = null,
+        ?DateTimeImmutable $birthDate = null,
+    ): Person
     {
-        return $this->people->generate($gender, $region);
+        return $this->people->generate($gender, $region, $birthDate);
     }
 
     /**

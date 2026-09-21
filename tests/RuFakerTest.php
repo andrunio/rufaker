@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Tests;
 
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -15,6 +16,12 @@ use RuFaker\RuFaker;
 #[CoversClass(RuFaker::class)]
 final class RuFakerTest extends TestCase
 {
+    /** Date of birth handed to the generator: any past day does, this one is simply written down. */
+    private const string BIRTH_DATE = '1990-05-17';
+
+    /** Name handed to the generator, a word the title book does not hold. */
+    private const string GIVEN_TITLE = 'Рассвет';
+
     #[Test]
     public function it_repeats_itself_for_one_seed(): void
     {
@@ -72,6 +79,59 @@ final class RuFakerTest extends TestCase
 
         $this->assertNull(
             $organization->kpp,
+        );
+    }
+
+    #[Test]
+    public function it_builds_a_sole_proprietor_out_of_a_given_person(): void
+    {
+        $faker = RuFaker::seeded(1234);
+        $person = $faker->person(region: Region::from('66'));
+
+        $proprietor = $faker->organization(person: $person);
+
+        $this->assertSame(
+            'ИП',
+            $proprietor->form,
+        );
+
+        $this->assertSame(
+            $person->inn,
+            $proprietor->inn,
+        );
+
+        $this->assertSame(
+            'ИП ' . $person->fullName,
+            $proprietor->shortName,
+        );
+    }
+
+    #[Test]
+    public function it_names_a_legal_entity_the_way_it_was_asked(): void
+    {
+        $organization = RuFaker::seeded(1234)
+            ->organization(LegalForm::Ooo, title: self::GIVEN_TITLE);
+
+        $this->assertSame(
+            'ООО "' . self::GIVEN_TITLE . '"',
+            $organization->shortName,
+        );
+
+        $this->assertSame(
+            'Общество с ограниченной ответственностью "' . self::GIVEN_TITLE . '"',
+            $organization->fullName,
+        );
+    }
+
+    #[Test]
+    public function it_takes_a_given_date_of_birth(): void
+    {
+        $person = RuFaker::seeded(1234)
+            ->person(birthDate: $this->birthDate());
+
+        $this->assertSame(
+            self::BIRTH_DATE,
+            $person->birthDate,
         );
     }
 
@@ -195,5 +255,15 @@ final class RuFakerTest extends TestCase
         $this->assertJson(
             (string)json_encode($organization),
         );
+    }
+
+    /**
+     * Builds the date of birth handed to the generator, written out rather than counted off today.
+     *
+     * @return DateTimeImmutable
+     */
+    private function birthDate(): DateTimeImmutable
+    {
+        return new DateTimeImmutable(self::BIRTH_DATE);
     }
 }

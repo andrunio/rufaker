@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RuFaker\Tests\Faker;
 
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +25,12 @@ use RuFaker\RuFaker;
 #[CoversClass(Values::class)]
 final class ValuesTest extends TestCase
 {
+    /** Date of birth handed to the provider: any past day does, this one is simply written down. */
+    private const string BIRTH_DATE = '1990-05-17';
+
+    /** Name handed to the provider, a word the title book does not hold. */
+    private const string GIVEN_TITLE = 'Рассвет';
+
     #[Test]
     public function it_hands_out_nothing_but_strings_and_arrays(): void
     {
@@ -51,7 +58,9 @@ final class ValuesTest extends TestCase
     #[Test]
     public function it_offers_every_generator_of_the_package(): void
     {
-        $core = (new ReflectionClass(RuFaker::class))->getMethods(ReflectionMethod::IS_PUBLIC);
+        $core = (new ReflectionClass(RuFaker::class))
+            ->getMethods(ReflectionMethod::IS_PUBLIC);
+
         $provided = (new ReflectionClass(Values::class));
 
         foreach ($core as $method) {
@@ -134,6 +143,33 @@ final class ValuesTest extends TestCase
     }
 
     #[Test]
+    public function it_passes_the_given_parts_on(): void
+    {
+        $ru = RuFaker::seeded(1234);
+
+        $values = new Values($ru);
+
+        $person = $ru->person(
+            region: Region::from('66'),
+        );
+
+        $this->assertSame(
+            $person->inn,
+            $values->organization(person: $person)['inn'],
+        );
+
+        $this->assertSame(
+            'ООО "' . self::GIVEN_TITLE . '"',
+            $values->organization(LegalForm::Ooo, title: self::GIVEN_TITLE)['short_name'],
+        );
+
+        $this->assertSame(
+            self::BIRTH_DATE,
+            $values->person(birthDate: $this->birthDate())['birth_date'],
+        );
+    }
+
+    #[Test]
     public function it_passes_the_region_down_to_a_personal_inn(): void
     {
         $inn = (new Values(RuFaker::seeded(1234)))
@@ -198,6 +234,16 @@ final class ValuesTest extends TestCase
             RuFaker::seeded(1234)->inn()->value,
             (new Values(RuFaker::seeded(1234)))->inn(),
         );
+    }
+
+    /**
+     * Builds the date of birth handed to the provider, written out rather than counted off today.
+     *
+     * @return DateTimeImmutable
+     */
+    private function birthDate(): DateTimeImmutable
+    {
+        return new DateTimeImmutable(self::BIRTH_DATE);
     }
 
     /**
